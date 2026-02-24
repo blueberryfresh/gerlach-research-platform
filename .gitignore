@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.Python
+env/
+venv/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Research Data - DO NOT UPLOAD
+research_data/
+*.json
+*.csv
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Secrets
+.env
+*.key

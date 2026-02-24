@@ -1,0 +1,906 @@
+
+
+--- PAGE 1 ---
+Letters
+https://doi.org/10.1038/s41562-018-0419-z
+A robust data-driven approach identifies four
+personality types across four large data sets
+Martin Gerlach1, Beatrice Farb1, William Revelle2 and Luís A. Nunes Amaral 1,3,4,5*
+Understanding human personality has been a focus for phi- personality types (Fig. 1). The difficulty in obtaining replicable
+losophers and scientists for millennia1. It is now widely results is exacerbated by the small sample sizes—typically not more
+accepted that there are about five major personality domains than 1,000 individuals—analysed in these studies6.
+that describe the personality profile of an individual2,3. In Here, we address the controversy related to the existence of per-
+contrast to personality traits, the existence of personality sonality types by combining an alternative computational approach
+types remains extremely controversial4. Despite the various to clustering with recently available large data sets comprising the
+purported personality types described in the literature, small responses of hundreds of thousands of users of web-based ques-
+sample sizes and the lack of reproducibility across data sets tionnaires20–22. In particular, we use 4 different data sets (each con-
+and methods have led to inconclusive results about personal- taining 100,000–500,000 respondents) that come from different
+ity types5,6. Here we develop an alternative approach to the sources, were collected in different countries, have different demo-
+identification of personality types, which we apply to four graphics with respect to age and gender and use different scales to
+large data sets comprising more than 1.5 million participants. measure the traits of the FFM. These data sets are among the largest
+We find robust evidence for at least four distinct personality publicly available data sets and allow for insight into whether per-
+types, extending and refining previously suggested typolo- sonality types truly exist. We show that these data can be used to
+gies. We show that these types appear as a small subset of a efficiently sample the multidimensional space of personality traits.
+much more numerous set of spurious solutions in typical clus- This richness in data not only allows for a direct visualization of
+tering approaches, highlighting principal limitations in the the structure in the space of personality traits but also enables us
+blind application of unsupervised machine learning methods to formulate robust null models to assess the statistical significance
+to the analysis of big data. of clustering solutions. Surprisingly, we find that even state-of-the-
+Already in Ancient Greece, philosophers attempted to capture and art clustering techniques23 yield mostly spurious clusters. However,
+organize individual differences in behaviour and emotion to under- after developing an alternative clustering approach, we identify four
+stand human personality. However, only in the past few decades has robust clusters that correspond to statistically meaningful personal-
+a consensus emerged regarding the basic structure of personality in ity types. The personality types we uncover provide some support
+the form of the Big-5 (ref. 7), also known as the Five-Factor model for, but extend and refine, the three ARC types6.
+(FFM)8. The FFM surmises the existence of five traits—neuroticism, We first analyse the answers of N = 145,388 individuals to
+extraversion, openness, agreeableness and conscientiousness— L = 300 items of the IPIP-NEO (International Personality Item
+that capture the main domains of human personality3. These five Pool24 implementation of the NEO-PI-R8) personality questionnaire
+domains have been reliably identified in numerous empirical stud- (Methods). We use factor analysis, which is a standard approach
+ies across different languages and cultures2 and have been shown to in psychometrics25, to extract the five main domains of personal-
+be good predictors of patterns of behaviour, such as well-being and ity (Methods). Formally, if we denote the answer of respondent j to
+mental health, job performance and marital relations9. The FFM also item i as A, factor analysis corresponds to a dimensionality reduc-
+ij
+provides a useful framework in a broad set of applications, including tion in the form
+clinical assessments of personality disorders10.
+In contrast to the consensus on the existence of personality traits, A≈Q∘P (1)
+the existence of personality types remains controversial. The best-
+supported modern and quantitative description of personality types where ◦ denotes matrix multiplication, and Q (the factor load-
+surmises the existence of three so-called ARC types, named after ings) and P (the factor scores) refer to the representations of items
+the authors of the seminal studies by Asendorpf et al.11, Robins et and respondents, respectively, in a space of five latent dimensions.
+al.12 and Caspi et al.13. This typology—the claim that people fall into Although in many dimensionality reduction applications the latent
+the three distinct categories ‘resilient’, ‘overcontrolled’ and ‘under- dimensions are not directly interpretable, here, inspection of Q
+controlled’—is based in large parts on an extension of the Freudian reveals that they correspond closely to the dimensions from the
+theory of ego functioning by Block14. However, this classification FFM (Supplementary Fig. 1). In turn, we can identify P as contain-
+j
+has been challenged extensively on statistical grounds5,15–17. Results ing the positions of respondent j in a 5D space of personality traits
+obtained using different approaches and data sets cannot typically (Methods).
+be replicated4,18 or identify more than three clusters19. Even stud- Visual inspection of the 1D and 2D projections of the 5D mul-
+ies confirming the ARC taxonomy show large variation, high- tivariate distributions does not suggest any obvious cluster struc-
+lighting the lack of consensus and replicability regarding the three ture beyond the trivial peak at the origin (Supplementary Fig. 2).
+1Department of Chemical and Biological Engineering, Northwestern University, Evanston, IL, USA. 2Department of Psychology, Northwestern University,
+Evanston, IL, USA. 3Northwestern Institute on Complex Systems, Northwestern University, Evanston, IL, USA. 4Department of Physics and Astronomy,
+Northwestern University, Evanston, IL, USA. 5Department of Medicine, Northwestern University, Evanston, IL, USA. *e-mail: amaral@northwestern.edu
+NAtuRe HuMAN BeHAviouR | www.nature.com/nathumbehav
+
+
+--- PAGE 2 ---
+Letters NatUre HUmaN BeHavIoUr
+correspond to spurious solutions. Although these results suggest
+that the solution of the GMM with N = 13 severely overfits the
+c data, a detailed analysis on cluster solutions with different assumed
+N shows a non-trivial dependence of the cluster positions on the
+c number of surmised clusters N; that is, fitting with only N = 4 clus-
+c c ters yields a solution that fails to identify most of the meaningful
+clusters.
+Looking at the different solutions for N = 12,… , 20, we observe
+c that not only do the number of meaningful clusters stay roughly
+constant at 4–6 (Fig. 2c) but also that the ‘position’ of the mean-
+ingful clusters remains approximately fixed (Supplementary
+Fig. 3). This suggests that, to obtain the correct answer, one must
+consider a model that overfits the data, that is, that searches for a larger number of clusters than one expects to find. This interpre- tation is supported when analysing synthetic data (Supplementary
+Fig. 4), in which we know the ‘true’ number of clusters. Although
+careful consideration of model selection procedures such as the BIC
+will prefer a larger number of clusters, it will fail to indicate the large
+number of ‘spurious’ clusters required to resolve the structure on
+a finer scale.
+Our analysis strongly supports the hypothesis that the exis-
+tence of an abnormally high density of individuals around these
+four cluster centres indicates the existence of robust personality
+types (Fig. 2d). The least robustly identified cluster (Supplementary
+Fig. 3), which we denote the ‘average’ type, is characterized by aver-
+age scores in all traits and being the only cluster where the univariate
+The marginal distributions show an approximately normal distri- Gaussian of each dimension is within one standard deviation from
+bution of each trait across the population consistent with previous the origin. In addition, the location of several individual traits are
+reports26. The 2D scatter plots show that, on average, scores between characterized by scores both below and above zero across different
+pairs of personality traits are virtually uncorrelated, which is to be data sets (see below). The existence of such a type has been reported
+expected owing to the assumption of orthogonality of latent dimen- recently in some studies; however, the empirical evidence reported
+sions in the factor analysis25. in the literature is contradictory6,32. The remaining three clusters
+We use Gaussian mixture models (GMMs), a standard unsuper- can be roughly organized along the two dimensions of neuroticism
+vised clustering algorithm, to uncover groups of individuals with sim- and extraversion. One of the most stable clusters (Supplementary
+ilar vectors P in the full trait space (Methods). As is recommended27, Fig. 3), which we denote the ‘role model’ type because it displays
+j
+we attempt to determine the optimal number of clusters using an socially desirable traits, is characterized by low scores in neuroti-
+information criterion, in this case the Bayesian information crite- cism and high scores in all other traits. It can be unambiguously
+rion (BIC)28. We find that the number of clusters (N) = 13 provides identified with the resilient type from the ARC taxonomy.
+c
+the ‘optimal’ fit of the GMM to the data, as any increase in the num- By contrast, the two other clusters are characterized by traits
+ber of clusters fails to lead to a significant increase in the likelihood that are less socially desirable when compared to the characteris-
+(Fig. 2a). This number of clusters is much larger than the ones tics of the ‘role model’ type. One of the clusters is marked by low
+reported in previous studies6 (and references therein), but in view scores on openness, agreeableness and conscientiousness, whereas
+of the much larger data set analysed here, it could be rationalized the other cluster shows low scores on neuroticism and openness. A
+because more data typically allow for the identification of more comparison with the closest types from the ARC typology (Fig. 1)
+complex models in any model selection procedure. suggests an identification with the undercontrolled and overcon-
+Nonetheless, we test whether all identified clusters are truly trolled personality types, respectively. Although it is reassuring
+meaningful. Recent investigations of latent variable models, that our findings are related to known typological constructs, our
+such as topic models or community detection in networks, have analysis goes beyond the replication of such types. Previous stud-
+revealed major limitations in the ability to infer the true underly- ies have characterized the undercontrolled and overcontrolled types
+ing structure29,30. For example, if groups are unequal in size, the with scores varying across the whole spectrum (negative to neutral
+models tend to overfit the data to resolve smaller groups, which to positive) in at least two dimensions (extraversion and openness;
+results in a large number of spurious solutions30. Thus, we assess openness and agreeableness), respectively. Moreover, for some
+whether inferred clusters correspond to meaningful personality traits, the scores of our types differ substantially from the undercon-
+types in the sense that they indicate significant ‘peaks’ in the dis- trolled and overcontrolled types. For example, whereas the overcon-
+tribution of individuals in the space of personality traits. Taking trolled type is usually associated with high scores on neuroticism,
+advantage of the large size of our database, our approach consists the closest cluster identified in our analysis displays low scores on
+of, first, directly estimating the density ρ of each cluster and, sec- neuroticism. This empirical result is also inconsistent with typical
+ond, comparing this with the density of a null model obtained from theoretical explanations of the differences between the two types
+∼
+a randomized data set ρ (Methods). This is analogous to previous in terms of control or, more specifically, internalizing and external-
+approaches in psychometrics that identified the optimal number izing problems in the framework of psychopathology12. In this view,
+of factors in factor analysis31. our analysis provides a different perspective from the classic ARC
+Surprisingly, only four of the identified clusters are centred taxonomy. To highlight this refinement, we denote the two types as
+in regions in which we observe a substantially larger fraction of ‘self-centred’ and ‘reserved’, respectively.
+respondents than expected from a random null model (Fig. 2b). We can obtain a more nuanced view addressing the question of
+In fact, about one-third of the inferred ‘clusters’ actually occupy the degree of clustering by visually exploring densities in suitably
+regions with lower-than-expected densities, confirming that most defined 2D hyperplanes (Supplementary Fig. 5). Although there is
+Average
+characteristic
+(Z
+score)
+Ref. 12 (N = 300)
+Ref. 11 (N = 1,610) Undercontrolled 1.0
+Ref. 41 (N = 735) 0.5
+Ref. 6 Germany (N = 14,718) 0
+Ref. 6 Australia (N = 8,315) –0.5
+Ref. 31 (N = 1,644) –1.0
+Overcontrolled Resilient 1.0
+0.5
+0
+–0.5
+–1.0
+Neuroticis m Extraversion Openn A e g s r s eea
+C
+b
+o
+le
+n
+n sc e i s e s ntiousne N s e s u roticis m Extraversion Openn A e g s r s eea
+C
+b
+o
+le
+n
+n sc e i s e s ntiousness
+Domains
+Fig. 1 | uncertainty in the ARC-type classification. The location in the
+aggregated trait space of the three ARC personality types as reported in
+the literature. The values were obtained by visual approximation of the
+given references. The size of the markers is proportional to (the square root
+of) the number of respondents in each study. The dotted lines show the
+average values, Z = 0, for the samples and personality traits.
+NAtuRe HuMAN BeHAviouR | www.nature.com/nathumbehav
+
+
+--- PAGE 3 ---
+NatUre HUmaN BeHavIoUr Letters
+a b c
+0
+2.046
+–1
+–2 –3
+–4
+d
+a considerable overlap between different clusters, we not only find projections (Supplementary Figs. 7–9). Next, we perform cluster
+that individual cluster centres are located in regions of higher-than- analysis showing the existence of a similar number of meaningful
+expected density but also identify neighbouring significant volumes personality types, confirming our previous finding that the seem-
+of ‘void’ space in which the density of individuals is much lower ingly ‘optimal’ cluster solution contains a majority of spurious clus-
+than expected. ters (Supplementary Fig. 10). Comparing the position of the clusters
+To test the robustness of our finding, we next replicate our identified in each data set, we find that most of the meaningful
+analysis on three independent data sets (Johnson-120, myPerson- and spurious clusters can be matched with a corresponding cluster
+ality-100 and BBC-44) from different sources. Although these data in the Johnson-300 data set (Fig. 3a), indicating a low occurrence
+sets are of similar magnitude in terms of the number of respon- of type I and type II errors when matching clusters across data
+dents, they use different scales in their measurement of the traits sets. This is highlighted by the comparison of the location of the
+in the FFM; in particular, they contain only 120, 100 and 44 items, matched clusters in the 5D space of personality traits (Fig. 3b and
+respectively, instead of 300 items (Methods). Applying the same Supplementary Table 1), which shows a high degree of agreement
+procedure as above, we first perform factor analysis, clearly reveal- on almost all traits across different data sets. However, although
+ing the Five-Factor structure (Supplementary Fig. 6), and obtain for the Johnson-120 data set we recover all four of the personality
+the position of each respondent in the 5D space of personality types, the myPersonality-100 and the BBC-44 each yield only three
+traits, which yield no obvious clusters in the lower-dimensional of the personality types obtained for the Johnson-300 data set.
+]eulav
+P[ gol 01
+2.044 )601×(
+CIB 2.042
+2.040
+Average Self-centred
+1.0
+0.5
+0
+–0.5
+–1.0
+Reserved Role model
+1.0
+0.5
+0
+–0.5
+–1.0
+N E O A C N E O A C
+Domains Domains
+)erocs
+Z(
+retsulc
+fo
+noitisoP
+)erocs
+Z(
+retsulc
+fo
+noitisoP
+6
+4 t = 3.06, P = 0.001
+t = 2.46, P = 0.013 t = 2.45, P = 0.008 2 t = 0.76, P = 0.225
+Minimum 0
+5 10 15 20 25 30 0.5 0.8 1 1.25 2 2 4 6 8 101214161820
+Number of cluster, N Number of surmised c
+clusters, N
+c
+lufgninaem
+fo rebmuN
+sretsulc
+Enrichment, ρ/〈ρ∼〉
+Fig. 2 | Clustering reveals four meaningful personality types. The identification of four meaningful personality types in the Johnson-300 data set
+(N = 145,388). a, The optimal number of clusters in the GMM according to the BIC as a function of N c obtained from the best solution of 100 fits with
+different initial conditions. We obtained error bars by applying the same fitting procedure to 100 bootstrapped samples of the data (±3 standard errors
+of the mean). We select, as the optimal solution, the smallest value of N for which the BIC is statistically indistinguishable from the minimum value of
+c
+the BIC (two-sided t-test for the difference in means from two populations of 100 bootstrapped samples, P < 0.05). This identifies N c = 13 (orange dot)
+as the optimal solution in the Johnson-300 data set as there is no significant improvement in the BIC upon adding further parameters. b, The P value and
+enrichment of each cluster (orange x) from the optimal solution identified, suggesting that there are only four meaningful clusters (grey shaded area).
+The dotted lines (vertical and horizontal) correspond to a threshold for a P value of 0.01 and an enrichment of 1.25, respectively. For comparison with a
+null effect, we show an enrichment of 1.0 (solid grey line). For the randomized data, we obtained an empirical distribution of the estimate of the density
+from 10,000 different random realizations. The blue arrows indicate P < 10−4, which is the maximum resolution given the number of random realizations.
+c, The number of meaningful clusters as a function of the number of surmised clusters, N, using the analysis in b. d, The position of cluster centres (in
+c
+units of standard deviation in each dimension) in the trait space for the Johnson-300 data set (•) . The error bars correspond to the standard deviation in
+each dimension of each multivariate Gaussian from the GMM (that is, the diagonal entries of the fitted covariance matrix). For comparison, we show the
+positions of the closest type from the ARC taxonomy reviewed in Fig. 1 (light grey). The dotted lines show the average values, Z = 0, for the samples and
+personality traits. A, agreeableness; C, conscientiousness; E, extraversion; N, neuroticism; O, openness.
+NAtuRe HuMAN BeHAviouR | www.nature.com/nathumbehav
+
+
+--- PAGE 4 ---
+Letters NatUre HUmaN BeHavIoUr
+a
+13 13 13
+4 4 4
+1 1 1
+1 5 18 1 10 30 1 7 27
+Cluster index Cluster index Cluster index
+b
+This suggests that the lower agreement with the cluster solution the increasing discretization of respondents′ scores in the trait space
+of the Johnson-300 data set is an artefact of the smaller number due to the smaller number of items (Supplementary Figs. 13–16).
+of items in the latter data sets. To test this hypothesis, we gener- To provide external validity, we next investigate whether the four
+ate synthetic versions of the Johnson-300 data set in which we personality types identified in the Johnson-300 data set are cor-
+only consider a random selection of 120, 100 and 44 items out related with demographic variables, such as gender and age. For
+of the original 300 (Johnson-300*[120], Johnson-300*[100] and example, from longitudinal studies, we expect an increase of socially
+Johnson-300*[44]), whereas the responses to the selected items desirable traits with maturity33 or a larger fraction of young males
+remain the same. Consistent with observations in the additional among self-centred individuals34.
+data sets, we find that the distinction between meaningful and spu- The overall distribution of respondents with respect to gender
+rious clusters gradually becomes blurred (Supplementary Fig. 11), and age varies considerably (Fig. 4a), both within (females and
+that is, spurious clusters ‘bleed’ into the region of significance. More young individuals are more numerous) and across data sets (the
+importantly, the degree of overlap between the shorter variations BBC-44 data set is much more skewed with respect to age). Thus,
+and the original Johnson-300 data set systematically decreases as we measure the degree to which a certain combination of age and
+we keep fewer items (Supplementary Fig. 12). In fact, using 120 or gender is overrepresented or underrepresented in the vicinity of the
+100 items, we recover the same four personality types, whereas for location of the respective personality type in comparison to a ran-
+44 items, we recover only two of the personality types (‘role model’ dom sampling of the whole population (Methods). This supervised
+and ‘reserved’), respectively, reproducing the very same pattern approach allows us to investigate the composition of all four types,
+observed in Fig. 3. even for data sets in which we were unable to resolve these types in
+Taken together, these results confirm our initial findings on the an unsupervised way.
+existence of at least four robust personality types. Moreover, they We find strong dependence on age and gender except for the
+demonstrate that reducing the number of items in a questionnaire ‘reserved’ type (Fig. 4b). For the ‘role model’ type, respondents
+can lead to a strong decrease in the resolution of the measurement younger than 21 years of age are slightly underrepresented, whereas
+of personality traits of individuals, which is probably an artefact of respondents older than 40 years of age are strongly overrepresented.
+xedni
+retsulC
+m. sp. m. sp. m. sp.
+1.0
+sp.
+m.
+1.0
+0.5
+0
+–0.5
+–1.0
+1.0
+0.5
+0
+–0.5
+–1.0
+N E O A C N E O A C
+Domains Domains
+003-nosnhoJ
+)erocs
+Z(
+retsulc
+fo
+noitisoP
+)erocs
+Z(
+retsulc
+fo
+noitisoP
+0.8
+0.6
+0.4
+0.2
+0
+Johnson-120 myPersonality-100 BBC-44
+Average Self-centred
+Reserved
+Johnson-300
+Johnson-120
+myPersonality-100
+Role model BBC-44
+Fig. 3 | Replicability of personality types in three independent data sets. a, The correspondence between clusters found in the Johnson-300 data set
+(N = 145,388) and three independent data sets (Methods): the Johnson-120 (N = 410,376), the myPersonality-100 (N = 575,380) and the BBC-44
+(N = 386,375) data sets. We calculate the Euclidean distance between the position of the centres of the clusters identified in the additional data set and
+the Johnson-300 data set, respectively. For each cluster in the additional data set, we identify the closest cluster in the Johnson-300 data set, that is,
+with the smallest Euclidean distance, and consider it a match if the distance is smaller than 1. The dotted lines separate meaningful (m.) from spurious
+(sp.) clusters as identified for the Johnson-300 data set (Fig. 2b) and the three independent data sets (Supplementary Fig. 10b,e,h). b, The position of the
+cluster centres (in units of standard deviation in each dimension) in the trait space for the Johnson-300 data set and the closest matching clusters of the
+Johnson-120, myPersonality-100 and BBC-44 data sets identified in a. The error bars show the values of the diagonal entries of the fitted covariance matrix
+of each multivariate Gaussian in the GMM. The dotted lines show the average values, Z = 0, for the samples and personality traits. A, agreeableness;
+C, conscientiousness; E, extraversion; N, neuroticism; O, openness.
+NAtuRe HuMAN BeHAviouR | www.nature.com/nathumbehav
+
+
+--- PAGE 5 ---
+NatUre HUmaN BeHavIoUr Letters
+a
+Johnson-300 Johnson-120 myPersonality-100 BBC-44
+b
+This dependence is even more pronounced for females than for larger than typical studies and between 0.1% and 1% of the total
+males. The ‘self-centred’ type displays almost the exact opposite population of the United States and the United Kingdom, respec-
+pattern—the strongest effect can be observed for females older than tively) makes us confident that the identified typology represents
+60 years of age, showing a more than fivefold decrease in appearing a robust structure.
+in the vicinity of this cluster. Although young males are overrep- Several limitations of this study need to be recognized. First, the
+resented, females older than 15 years of age are underrepresented. samples of our study are large and diverse, yet they are not represen-
+The ‘average’ type shows an underrepresentation of males. Most tative of the population, as demonstrated by the distribution of age
+importantly, the observed dependence on age and gender for each and gender. Second, different factors induce measurement errors in
+personality type is consistent across all data sets. unknown and potentially biased ways. The small number of items
+The consistency with measurements of external variables such as used in some web-based questionnaires results in a decrease of
+gender and age add further support for the robustness of the typol- the signal-to-noise ratio. Indeed, our study does not conclusively
+ogy uncovered by our analysis. Furthermore, our analysis highlights answer what the minimum number of items needed to reliably
+how large data sets can offer a complementary approach to small- assess personality types is. As we have shown, different scales will
+scale studies of the temporal dynamics of personality structure. lead to different factor scores—even when measuring the same five
+To summarize, our study provides compelling evidence, both personality domains, two questionnaires might use different items.
+quantitatively and qualitatively, for the existence of at least four This issue will be exacerbated when considering alternative rep-
+distinct personality types. Although these types overlap in cer- resentations of the space of personality traits, for example, the 30
+tain aspects with typologies hypothesized previously—even facets of the FFM36, the 6 domains of the HEXACO inventory18 or
+showing similarities with some of the ancient four temperaments the 27-dimensional SAPA Personality Inventory37. Third, obtain-
+by considering only the two dimensions of neuroticism and ing data sets of this magnitude is contingent upon the use of self-
+extraversion35—our data-driven approach minimizes the effect reports, ignoring unique insights from non-self reports38. Although
+of possible confirmation bias and rationalization of ad hoc typo- this constitutes an intrinsic limitation due to, for example, differ-
+logical constructs. The size of our data sets (nearly 1,000-fold ences in response style, poor self-perception or social desirability39,
+retsulc
+eht
+ni
+ycneuqerf
+evitaleR
+stnednopser
+fo
+noitcarF
+Age (yr)
+egarevA
+dertnec-fleS
+devreseR
+ledom
+eloR
+Male
+0.2 0.2 0.2 0.2
+Female
+0.1 0.1 0.1 0.1
+0 0 0 0
+11213141516171 11213141516171 11213141516171 11213141516171
+Age (yr)
+5
+2
+1
+1/2
+1/5
+5
+2
+1
+1/2
+1/5
+5
+2
+1
+1/2
+1/5
+5
+2
+1
+1/2
+1/5
+11213141516171 11213141516171 11213141516171 11213141516171
+Fig. 4 | the composition of four meaningful clusters is correlated with age and gender and is stable across different data sets. a, The number of
+respondents according to age and gender for the four different data sets: the Johnson-300 (N = 145,388), the Johnson-120 (N = 410,376), the
+myPersonality-100 (N = 225,117) and the BBC-44 (N = 386,371) data sets. b, The relative frequency of respondents of a given age and gender at the positions
+of the four meaningful clusters identified in the Johnson-300 data set (Fig. 2). We measure how much a group, defined by age and gender, is overrepresented
+(or underrepresented) in each cluster (rows) by calculating the number of respondents of a group within a radius of r = 1.5 around each cluster and compare
+with the expected number of respondents of the same group based on the global distribution of age and gender for each data set. The black bars indicate ± 1
+standard deviation (Methods). The grey background indicates that the personality type could not be identified in the respective data set.
+NAtuRe HuMAN BeHAviouR | www.nature.com/nathumbehav
+
+
+--- PAGE 6 ---
+Letters NatUre HUmaN BeHavIoUr
+we note that self-reports have been repeatedly shown to correlate components analysis, to find the underlying (latent) structure of the matrix A ij . In
+strongly with peer evaluations2. this, we assume the existence of D latent dimensions, such that we can decompose
+A as
+Our study highlights several open challenges for future studies on ij
+personality. Despite our results indicating a robust pattern of types D
+across different data sets, there is still no convergence on a unified
+A ij≈∑
+d=1
+Q
+id
+P
+dj
+(2)
+framework for how many and which types are supported by empirical
+where Q id is a S × D dimensional matrix describing how each latent dimension d is
+evidence. Furthermore, although the presented empirical evidence defined as a superposition of items or, put differently, how much the latent factor
+for the identified types is unambiguous, we still lack a theoretical d influences the answer to item i (the so-called factor loading). P is then a D × N
+dj
+understanding, for example, in analogy to Block′ s psychodynamic dimensional matrix describing where each respondent is located in the space
+of the latent dimensions. We use the numerical implementation described in
+theory for attractor states in the space of personality14, of why types
+scikit-learn46.
+show particular combination of traits. Finally, the data analysed here
+The matrices Q and P of the factor analysis are not unique in the sense that we
+does not allow us to address the pertinent question of how much per- can introduce any rotation by an orthogonal matrix R such that
+sonality types are able to predict life outcomes. Previous research has
+shown the usefulness of the ARC types in predicting life outcomes40,41; A=Q∘P=Q∘(RT ∘R)∘P=Q′∘P′ (3)
+however, such data are not available in questionnaires of the type ana- with Q′=Q∘RT and P′=R∘P and where ∘ denotes matrix multiplication
+lysed in this study. Fortunately, some large-scale studies, such as the and RT denotes the transpose of R. We use the most common choice for
+SAPA-Project Database of Individual Differences22, are now being R, the so-called varimax rotation47, which maximizes the variance of the
+collected in combination with the assessment of personality. squared loadings Q column-wise. This typically leads to the most
+Our results have important implications. An empirically justi- block-diagonal form of Q, such that one can easily find relations between
+latent dimensions and items. We use the numerical implementation in the
+fied taxonomic system of personality types offers a coarse-grained
+package Factor-rotation48.
+abstraction on the distribution of personality traits across indi- As there is no consensus on the ‘correct’ rotation and that factor
+viduals, in analogy to the distinction between different groups of scores from the varimax rotation ignore the known correlations between
+elementary particles (for example, fermions or bosons) in physics personality traits, we also consider oblique (non-orthogonal) rotations.
+In fact, using the so-called quartimin rotation from the oblimin family49, we
+or different species in biology. Such a classification is potentially
+reproduce the main findings on personality types reported in the main text
+useful in applied contexts, such as in clinical settings related to psy-
+(Supplementary Fig. 17).
+chopathology or vocational settings. Previously found types have An alternative to factor analysis are the raw Big-Five scores obtained
+been found to correlate with these outcomes, in particular, when from direct scoring of the items. However, the small number of items leads
+the time window for prediction is large5. More pragmatically, a to visible discretization artefacts (Supplementary Figs. 13–16), which induce
+substantial and non-trivial biases when applying clustering approaches for
+type-based approach offers additional possibilities in the design of
+continuous trait variables.
+questionnaires with fewer items, as less information is required for
+a discrete-type classification than for a continuous trait estimation. From latent dimensions to personality traits. The vector P corresponds to the
+j
+Moreover, our analysis establishes a major advance in the interpre- position of respondent j in the space of latent dimensions. Upon inspection of the
+tation of clustering solutions from a methodological perspective. matrix Q, we find a unique mapping between latent dimensions and psychological
+traits (Supplementary Fig. 1) as
+Indeed, our key technical insight reveals that even state-of-the-art
+clustering algorithms will only find the correct solution by search- j=1,…,5→N,E,O,A,C (4)
+ing for a larger number of clusters than what could exist in the data
+and will fail to identify the abundance of mostly spurious clusters This allows us to interpret the factor scores P j as the coordinates of respondent j in
+the 5D space of personality traits.
+even when using a careful consideration of (approximate) model
+selection techniques, such as the BIC. GMMs. We cluster the data using a GMM50. The GMM is formulated as a
+generative model in which we assume that the data D={x i }with i = 1,… , N
+Methods observations are generated from k = 1,… , N c multivariate Gaussian distributions
+Data. In our analysis, we use four different data sets from web-based N(μ k ,Σk )with the mean μ k and the covariance matrix Σk . Introducing the weights
+questionnaires that measure the personality traits (so-called domains) of the πk (obeying ∑
+k
+πk=1), we can express the marginal likelihood as:
+FFM3 using different scales: the Johnson-300 data set36 (145,338 respondents),
+t
+s
+h
+et
+e
+4
+J
+2
+o
+(
+h
+5
+n
+7
+s
+5
+o
+,3
+n
+8
+-
+0
+1 2
+r
+0
+es
+d
+p
+a
+o
+t
+n
+a
+d
+s
+e
+e
+n
+t
+t
+3
+s
+6
+)
+( 4
+th
+1
+e
+0 ,
+a
+3
+n
+7
+d
+6
+B
+re
+B
+s
+C
+po
+-4
+n
+4
+d e
+d
+n
+a
+t
+t
+s
+a
+) ,
+s e
+th
+t4
+e
+3 (
+m
+3
+y
+8
+P
+6,
+e
+3
+r
+7
+s
+5
+o n
+r
+a
+es
+li
+p
+ty
+o
+-
+n
+1
+d
+0
+e
+0
+n
+d
+ts
+a
+)
+t
+.
+a p(D∣{μ
+k
+,Σk ,πk })=∏
+i
+N
+=1
+∑
+k
+πk N(x i∣μ
+k
+,Σk ) (5)
+P w a o r r t k ic h ip a a r n d t .” s w w i e th re p a o s s k s e i d b l t e o r s e t s a p t o e n h s o e w s: m 1 ( u v c e h r y t h in ey a c a c g u r r e a e t e w ) i , t 2 h ( s m ta o te d m er e a n t t e s l y s u in c a h c a c s u r “ a I te), W res e p f e o c u t n to d t t h h e e p b a e r s a t m se e t t o e f r s p . a W ra e m u e s t e e r th s e { μ n k u , m Σk e , r π ic k a } l b i y m m p a le x m im en iz t i a n t g io e n q d u e a s t c io r n ib ( e 5 d ) i w n ith
+3 (neither accurate nor inaccurate), 4 (moderately accurate) or 5 (very accurate). scikit-learn46.
+The Johnson-300 data set constitutes by far the most detailed measurement of the
+The main advantage of using generative models such as the GMM is that
+FFM owing to the large number of items answered by each individual using the
+the problem of clustering can be approached in the framework of statistical
+IPIP-NEO. The Johnson-120 data set uses a shorter version of the questionnaire
+inference in which the assumptions about the data have to be formulated explicitly.
+with a subset of 120 items containing independently collected responses. The
+In addition to fitting cluster centres μ, we can explicitly take into account
+myPersonality-100 data set uses 100 items from the IPIP representation of the NEO k
+PI-R of which 65 and 37 items are not contained in the Johnson-120 (Johnson-300)
+unequal sizes of clusters (πk ) as well as the covariance structure in the data (Σk ).
+Furthermore, the GMM allows for so-called soft clustering, in which each data
+data set, respectively. The BBC-44 data set uses 44 items that are not contained
+point is assigned a probability to belong to any of the clusters. As a result, the
+in any of the three other data sets. For all data sets, we only consider respondents
+GMM is a much more flexible framework for clustering than are more commonly
+who gave responses to all of the items. For the myPersonality-100 data set, we
+used methods, such as k-means clustering.
+considered only one set of responses of each individual (indicated by the variable
+‘best protocol’) in case the same person took the test several times. In addition, we
+obtained the gender and age of each participant. Although it is clear from these Kernel density estimation. Given a set of data D = {x i } with i = 1,… , N
+demographics that our data sets are not representative of the general population,
+observations where x
+i
+is a D dimensional vector, we estimate the density ρ(y)for an
+arbitrary point y in the trait space using a kernel density estimation50:
+it has been well established that data from web-based questionnaires are more
+diverse and are of at least as good quality as data obtained through more traditional 1 N
+approaches44. For the myPersonality-100 and the BBC-44 data sets, gender or age is ρ(y)= N ∑ i=1 K h (y,x i ) (6)
+not available for 350,263 (60.9%) and 4 (0.001%) respondents, respectively. In the
+analysis involving these demographics, we only considered respondents for which where K denotes a kernel with bandwidth h. We use a Gaussian kernel
+h
+both variables are available.
+F re a d c u to ct r i o a n n a in ly s th is e . a W n e a l u y s s e is f o ac f t p o e r r a so n n al a y l s it i y s4 t 5, r a a i t s s t 2 a 5 n s d im ar i d la m r t e o t , h f o o d r e o x f a d m im pl e e n , s t i h o e n p al r i i t n y c ipal K h (y,x i )= (2πh 1 2) D∕2 e− ∑d D =1 2 (x h i 2 d−yd)2 (7)
+NAtuRe HuMAN BeHAviouR | www.nature.com/nathumbehav
+
+
+--- PAGE 7 ---
+NatUre HUmaN BeHavIoUr Letters
+with the bandwidth calculated from the average Euclidean distance between the 10. Widiger, T. A. & Costa, P. T. Jr. Personality Disorders and the Five-Factor
+nearest neighbours, yielding 0.20 < h < 0.26 for the four data sets. We use the Model of Personality 3rd edn (American Psychological Association,
+numerical implementation described in scikit-learn46. Washington DC, 2013).
+∼
+We compare the density ρ in the original data set with the density ρ obtained 11. Asendorpf, J. B., Borkenau, P., Ostendorf, F. & Van Aken, M. A. G. Carving
+with a random null model. For the latter, we reassign (‘shuffle’) the values P for personality description at its joints: confirmation of three replicable personality
+dj
+fixed d across all individuals j. Repeating the shuffling procedure a large number prototypes for both children and adults. Eur. J. Pers. 15, 169–198 (2001).
+of times allows us to estimate a distribution p(ρ ∼ ). To assess whether the density 12. Robins, R. W., John, O. P., Caspi, A., Moffitt, T. E. & Stouthamer-Loeber, M.
+is larger than expected from chance, we first calculated the P value as p(ρ<ρ ∼ ). Resilient, overcontrolled, and undercontrolled boys: three replicable
+This corresponds to a one-sided test of the hypothesis ρ=ρ ∼ , that is, the density is personality types. J. Pers. Soc. Psychol. 70, 157–171 (1996).
+the same as in the randomized data set. To quantify how much the density exceeds 13. Caspi, A. & Silva, P. A. Temperamental qualities at age three predict
+the random expectation in absolute terms, we also calculated the enrichment as personality traits in young adulthood: longitudinal evidence from a birth
+ρ∕ ρ ∼ where ρ ∼ denotes the mean value of ρ ∼ . cohort. Child Dev. 66, 486–498 (1995).
+We use this procedure to define a cluster as meaningful and non-spurious if it 14. Block, J. Lives Through Time (Bancroft Press, Berkeley, CA, 1971).
+meets two criteria: one, the density at the cluster centre is significantly larger than 15. Costa, P. T., Herbst, J. H., McCrae, R. R., Samuels, J. & Ozer, D. J. The replicability
+expected from chance (P < 0.01); and two, its density exceeds the random density and utility of three personality types. Eur. J. Pers. 16, S73–S87 (2002).
+not just marginally but also in absolute terms by at least 25% (ρ/⟨ρ~⟩>1.25). 16. Herzberg, P. Y. & Roth, M. Beyond resilients, undercontrollers, and
+overcontrollers? An extension of personality prototype research. Eur. J. Pers.
+20, 5–28 (2006).
+Composition of clusters with respect to age and gender. Given the location P
+k 17. Altman, N. & Krzywinski, M. Points of significance: clustering. Nat. Methods
+of cluster k, we count the number of respondents with a given age a and gender g
+14, 545–546 (2017).
+contained within a sphere of radius δ = 1.5 denoted by n k (a, g) (with a total of N k 18. Ashton, M. C. & Lee, K. An investigation of personality types within the
+individuals within the sphere). We compare this number with the expected number
+HEXACO personality framework. J. Individ. Differ. 30, 181–187 (2009).
+of individuals with the same age and gender (a, g), n͠k (a,g). Assuming a binomial
+19. Isler, L., Fletcher, G. J. O., Liu, J. H. & Sibley, C. G. Validation of the
+drawing with the fraction of individuals with the same (a, g) in the complete data
+four-profile configuration of personality types within the Five-Factor model.
+set, p(a, g), we can calculate the average and the standard deviation as
+Pers. Individ. Dif. 106, 257–262 (2017).
+(cid:31) 20. Rentfrow, P. J. et al. Divided we stand: three psychological regions of the
+μ(n k (a,g))=N k p(a,g), (8) United States and their political, economic, social, and health correlates.
+(cid:31) J. Pers. Soc. Psychol. 105, 996–1012 (2013).
+σ(n
+k
+(a,g))= N
+k
+p(a,g)(1−p(a,g))
+21. Rentfrow, P. J., Jokela, M. & Lamb, M. E. Regional personality differences in
+Great Britain. PLoS ONE 10, e0122245 (2015).
+From this, we can define the relative frequency of age a and gender g in
+22. Revelle, W. et al. in SAGE Handbook of Online Research Methods
+cluster k, which corresponds to the degree to which they are overrepresented or
+(eds Fielding, N. G. et al.) 578–595 (SAGE, London, 2016).
+underrepresented, as 23. Jain, A. K. Data clustering: 50 years beyond k-means. Pattern Recogn. Lett.
+(cid:31) 31, 651–666 (2010).
+z k (a,g)=n k (a,g)∕n k (a,g) (9) 24. Goldberg, L. R. in Personality Psychology in Europe Vol. 7 (eds Mervielde, I.,
+Deary, I., De Fruyt, F. & Ostendorf, F.) 7–28 (Tilburg Univ. Press, Tilburg, 1999).
+such that z > 1 (z < 1) indicates overrepresentation or underrepresentation, 25. Revelle, W. An Introduction to Psychometric Theory with Applications in R
+respectively. (Personality Project, 2017); http://www.personality-project.org/r/book/
+26. Costa, P. T. & McCrae, R. in The Oxford Handbook of the Five Factor Model
+Reporting Summary. Further information on research design is available in the (ed. Widiger, T. A.) 1–52 (Oxford Univ. Press, Oxford, 2015).
+Nature Research Reporting Summary linked to this article. 27. Burnham, K. P. & Anderson, D. R. Model Selection and Multimodel Inference
+2nd edn (Springer, New York, NY, 2002).
+Code availability. The code used for data processing and clustering is available in a 28. Schwarz, G. Estimating the dimension of a model. Ann. Stat. 6, 461–464 (1978).
+GitHub repository (https://github.com/amarallab/personality-types). 29. Fortunato, S. & Barthelemy, M. Resolution limit in community detection.
+Proc. Natl Acad. Sci. USA 104, 36–41 (2007).
+Data availability 30. Lancichinetti, A. et al. A high-reproducibility and high-accuracy method for
+automated topic classification. Phys. Rev. X 5, 011007 (2015).
+Data are available from https://osf.io/tbmh5/ (Johnson-300 and Johnson-120),
+31. Horn, J. L. A rationale and test for the number of factors in factor analysis.
+http://mypersonality.org (myPersonality-100) and https://doi.org/10.5255/
+Psychometrika 30, 179–185 (1965).
+UKDA-SN-7656-1 (BBC-44).
+32. Xie, X., Chen, W., Lei, L., Xing, C. & Zhang, Y. The relationship between
+personality types and prosocial behavior and aggression in Chinese
+Received: 17 January 2018; Accepted: 25 July 2018;
+adolescents. Pers. Individ. Dif. 95, 56–61 (2016).
+Published: xx xx xxxx 33. Terracciano, A., McCrae, R. R., Brent, L. J. & Costa, P. T. Hierarchical linear
+modeling analyses of the NEO-PI-R scales in the Baltimore longitudinal
+study of aging. Psychol. Aging 20, 493–506 (2005).
+References
+34. Meeus, W., Van de Schoot, R., Klimstra, T. & Branje, S. Personality types in
+1. Revelle, W., Wilt, J. & Condon, D. M. in The Wiley-Blackwell Handbook of adolescence: change and stability and links with adjustment and relationships:
+Individual Differences (eds Chamorro-Premuzic, T. et al.) 1–38 (Wiley- a five-wave longitudinal study. Dev. Psychol. 47, 1181–1195 (2011).
+Blackwell, Oxford, 2013). 35. Eysenck, H. J. & Eysenck, M. W. Personality and Individual Differences: a
+2. McCrae, R. R. & Costa, P. T. in The SAGE Handbook of Personality Theory Natural Science Approach (Plenum Press, New York, NY, 1985).
+and Assessment: Volume 1 Personality Theories and Models (eds Boyle, G. J. 36. Johnson, J. A. Measuring thirty facets of the Five Factor model with a
+et al.) 273–294 (SAGE, London, 2008). 120-item public domain inventory: development of the IPIP-NEO-120. J. Res.
+3. Widiger, T. A. The Oxford Handbook of the Five Factor Model of Personality Pers. 51, 78–89 (2014).
+(Oxford Univ. Press, Oxford, 2015). 37. Condon, D. M. The SAPA personality inventory: an empirically-derived,
+4. McCrae, R. R., Terracciano, A., Costa, P. T. & Ozer, D. J. Person-factors in the hierarchically-organized self-report personality assessment model. Preprint at
+California adult Q-set: closing the door on personality trait types? Eur. J. Pers. https://psyarxiv.com/sc4p9/ (2018).
+20, 29–44 (2006). 38. Vazire, S. & Mehl, M. Knowing me, knowing you: the accuracy and unique
+5. Donnellan, M. B. & Robins, R. W. Resilient, overcontrolled, and predictive validity of self-ratings and other-ratings of daily behavior. J. Pers.
+undercontrolled personality types: issues and controversies. Soc. Pers. Psychol. Soc. Psychol. 95, 1202–1216 (2008).
+Compass 11, 1070–1083 (2010). 39. Paulhus, D. L. & Vazire, S. in Handbook of Research Methods in Personality
+6. Specht, J., Luhmann, M. & Geiser, C. On the consistency of personality types Psychology (eds Robins, R. W. et al.) 224–239 (Guilford, New York, NY, 2007).
+across adulthood: latent profile analyses in two large-scale panel studies. 40. Chapman, B. & Goldberg, L. Replicability and 40-year predictive power of
+J. Pers. Soc. Psychol. 107, 540–556 (2014). childhood ARC types. J. Pers. Soc. Psychol. 101, 593–606 (2011).
+7. Goldberg, L. R. An alternative “description of personality”: the Big-Five factor 41. Steca, P., Alessandri, G. & Caprara, G. V. The utility of a well-known
+structure. J. Pers. Soc. Psychol. 59, 1216–1229 (1990). personality typology in studying successful aging: resilients, undercontrollers,
+8. Costa, P. T. & McCrae, R. R. NEO PI-R Professional Manual (Psychological and overcontrollers in old age. Pers. Individ. Dif. 48, 442–446 (2010).
+Assessment Resources, Odessa, FL, 1992). 42. Kosinski, M., Matz, S., Gosling, S., Popov, V. & Stillwell, D. Facebook as a
+9. Ozer, D. J. & Benet-Martıń ez, V. Personality and the prediction of social science research tool: opportunities, challenges, ethical considerations
+consequential outcomes. Annu. Rev. Psychol. 57, 401–421 (2006). and practical guidelines. Am. Psychol. 70, 543–556 (2015).
+NAtuRe HuMAN BeHAviouR | www.nature.com/nathumbehav
+
+
+--- PAGE 8 ---
+Letters NatUre HUmaN BeHavIoUr
+43. University of Cambridge, Department of Psychology, British Broadcasting The funders had no role in study design, data collection and analysis, decision to publish
+Corporation BBC Big Personality Test, 2009–2011: Dataset for Mapping or preparation of the manuscript. We thank J. Johnson for making the Johnson-300
+Personality across Great Britain [data collection] (UK Data Service, 2015); and the Johnson-120 data sets publicly available; D. Stillwell, M. Kosinski and the
+https://doi.org/10.5255/UKDA-SN-7656-1 myPersonality project for sharing the myPersonality-100 data; and the BBC LabUK for
+44. Gosling, S. D., Vazire, S., Srivastava, S. & John, O. P. Should we trust making the BBC-44 data set publicly available.
+web-based studies? A comparative analysis of six preconceptions about
+internet questionnaires. Am. Psychol. 59, 93–104 (2004).
+Author contributions
+45. Hastie, T., Tibshirani, R. & Friedman, J. The Elements of Statistical Learning
+2nd edn (Springer, New York, NY, 2009). M.G., B.F., W.R. and L.A.N.A. designed the research. M.G., B.F., W.R. and L.A.N.A.
+46. Pedregosa, F. et al. Scikit-learn: machine learning in Python. J. Mach. Learn. performed the research. M.G. and B.F. analysed the data. M.G., W.R. and L.A.N.A. wrote
+Res. 12, 2825–2830 (2011). the paper.
+47. Kaiser, H. F. The varimax criterion for analytic rotation in factor analysis.
+Psychometrika 23, 187–200 (1958). Competing interests
+48. Factor rotation. Python code for factor rotation (GitHub, 2017); http://github. The authors declare no competing interests.
+com/mvds314/factor_rotation
+49. Carrol, J. An analytical solution for approximating simple structure in factor
+analysis. Psychometrika 18, 23–38 (1953). Additional information
+50. Bishop, C. Pattern Recognition and Machine Learning (Springer, New York, Supplementary information is available for this paper at https://doi.org/10.1038/
+NY, 2006). s41562-018-0419-z.
+Reprints and permissions information is available at www.nature.com/reprints.
+Acknowledgements
+Correspondence and requests for materials should be addressed to L.A.N.A
+L.A.N.A. thanks the John and Leslie McQuown Gift and support from the Department
+of Defense Army Research Office under grant number W911NF-14-1-0259. W.R.’s work Publisher’s note: Springer Nature remains neutral with regard to jurisdictional claims in
+was partially supported by a grant from the National Science Foundation: SMA-1419324. published maps and institutional affiliations.
+NAtuRe HuMAN BeHAviouR | www.nature.com/nathumbehav
+
+
+--- PAGE 9 ---
+1
+nature
+research
+|
+reporting
+summary
+April
+2018
+Corresponding author(s): Amaral, Luis A. Nunes
+Reporting Summary
+Nature Research wishes to improve the reproducibility of the work that we publish. This form provides structure for consistency and transparency
+in reporting. For further information on Nature Research policies, see Authors & Referees and the Editorial Policy Checklist.
+Statistical parameters
+When statistical analyses are reported, confirm that the following items are present in the relevant location (e.g. figure legend, table legend, main
+text, or Methods section).
+n/a Confirmed
+The exact sample size (n) for each experimental group/condition, given as a discrete number and unit of measurement
+An indication of whether measurements were taken from distinct samples or whether the same sample was measured repeatedly
+The statistical test(s) used AND whether they are one- or two-sided
+Only common tests should be described solely by name; describe more complex techniques in the Methods section.
+A description of all covariates tested
+A description of any assumptions or corrections, such as tests of normality and adjustment for multiple comparisons
+A full description of the statistics including central tendency (e.g. means) or other basic estimates (e.g. regression coefficient) AND
+variation (e.g. standard deviation) or associated estimates of uncertainty (e.g. confidence intervals)
+For null hypothesis testing, the test statistic (e.g. F, t, r) with confidence intervals, effect sizes, degrees of freedom and P value noted
+Give P values as exact values whenever suitable.
+For Bayesian analysis, information on the choice of priors and Markov chain Monte Carlo settings
+For hierarchical and complex designs, identification of the appropriate level for tests and full reporting of outcomes
+Estimates of effect sizes (e.g. Cohen's d, Pearson's r), indicating how they were calculated
+Clearly defined error bars
+State explicitly what error bars represent (e.g. SD, SE, CI)
+Our web collection on statistics for biologists may be useful.
+Software and code
+Policy information about availability of computer code
+Data collection We used publicly available data on web-based personality questionnaires. Data was downloaded and analyzed using custom Python code.
+Data analysis Custom Python code using standard packages including numpy, scipy, and scikit-learn.
+For manuscripts utilizing custom algorithms or software that are central to the research but not yet described in published literature, software must be made available to editors/reviewers
+upon request. We strongly encourage code deposition in a community repository (e.g. GitHub). See the Nature Research guidelines for submitting code & software for further information.
+Data
+Policy information about availability of data
+All manuscripts must include a data availability statement. This statement should provide the following information, where applicable:
+- Accession codes, unique identifiers, or web links for publicly available datasets
+- A list of figures that have associated raw data
+- A description of any restrictions on data availability
+Data are available from:
+https://osf.io/tbmh5/ (Johnson-300 and Johnson-120),
+
+
+--- PAGE 10 ---
+2
+nature
+research
+|
+reporting
+summary
+April
+2018
+http://mypersonality.org (myPersonality-100), and
+http://doi.org/10.5255/UKDA-SN-7656-1 (BBC-44).
+Field-specific reporting
+Please select the best fit for your research. If you are not sure, read the appropriate sections before making your selection.
+Life sciences Behavioural & social sciences Ecological, evolutionary & environmental sciences
+For a reference copy of the document with all sections, see nature.com/authors/policies/ReportingSummary-flat.pdf
+Behavioural & social sciences study design
+All studies must disclose on these points even when the disclosure is negative.
+Study description We use 4 different datasets from web-based questionnaires measuring the personality traits (so-called domains) of the Five-Factor
+model 3 using different scales.
+Research sample Participants are asked to state how much they agree with statements such as ”I work hard.” with possible responses: 1 (Very Inaccurate),
+2 (Moderately Inaccurate), 3 (Neither Accurate nor Inaccurate), 4 (Moderately Accurate), or 5 (Very Accurate). The Johnson-300 dataset
+with 145,338 respondents constitutes by far the most detailed measurement of the Five-Factor model due to the large number of items
+answered by each individual using the IPIP-NEO. The Johnson-120 dataset with 410,376 respondents uses a shorter version of the
+questionnaire with a subset of 120 items containing independently collected responses. The myPersonality-100 dataset with 575,380
+respondents uses 100 items from the IPIP representation of the NEO-PI R of which 65 (37) of the items not contained in the Johnson-120
+(Johnson-300) dataset. The BBC-44 dataset with 386,375 respondents uses 44 items that are not contained in any of the 3 other
+datasets.Additionally, we obtain the gender and age of each participant. For the myPersonality-100 and the BBC-44 gender or age is not
+available for 350,263 (60.9%) and 4 (0.001%) respondents, respectively.
+Sampling strategy We use data collected in other studies. Sampling is described in the original studies.
+Data collection We used publicly available data on web-based personality questionnaires. Data was downloaded and analyzed with custom Python code.
+Timing Data was collected in other studies described in:
+- Johnson, J. A. Measuring thirty facets of the Five Factor model with a 120-item public domain inventory: Development of the IPIP-
+NEO-120. J. Res. Pers. 51, 78–89 (2014). Data at https://osf.io/wxvth.
+- University of Cambridge. Department of Psychology, British Broadcasting Corporation. BBC big personality test, 2009-2011: Dataset for
+mapping personality across Great Britain. [Data collection]. UK Data Service 7656 (2015). Data at http://doi.org/10.5255/UKDA-
+SN-7656-1.
+- Kosinski, M., Matz, S., Gosling, S., Popov, V. & Stillwell, D. Facebook as a social science research tool: Opportunities, challenges, ethical
+considerations and practical guidelines. Am. Psychol. 70, 543–556 (2015).
+Data exclusions For all datasets, we only consider respondents which gave responses to all of the items. For the myPersonality-100 dataset, we
+considered only one set of responses of each individual (indicated by the variable “best protocol”) in case the same person took the test
+several times.
+Non-participation n/a
+Randomization n/a
+Reporting for specific materials, systems and methods
+Materials & experimental systems Methods
+n/a Involved in the study n/a Involved in the study
+Unique biological materials ChIP-seq
+Antibodies Flow cytometry
+Eukaryotic cell lines MRI-based neuroimaging
+Palaeontology
+Animals and other organisms
+Human research participants
+
+
+--- PAGE 11 ---
+3
+nature
+research
+|
+reporting
+summary
+April
+2018
+Human research participants
+Policy information about studies involving human research participants
+Population characteristics See above.
+Recruitment Data was collected in other studies; details about recruitment are available in the original research papers (see above).

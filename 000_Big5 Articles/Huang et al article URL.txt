@@ -1,0 +1,16 @@
+
+
+Huang, M., Zhang, X., Soto, C., & Evans, J. (2025). Designing LLM-agents with personalities: A psychometric approach.  
+
+https://arxiv.org/pdf/2410.19238
+
+
+
+Li, W., Liu, J., Liu, A., Zhou, X., Diab, M., and Sap, M., (2025)
+BIG5-CHAT: Shaping LLM Personalities
+Through Training on Human-Grounded Data
+
+https://aclanthology.org/2025.acl-long.999.pdf
+
+
+
