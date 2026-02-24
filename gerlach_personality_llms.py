@@ -10,6 +10,13 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 import json
 
+# Try to import streamlit for secrets support
+try:
+    import streamlit as st
+    HAS_STREAMLIT = True
+except ImportError:
+    HAS_STREAMLIT = False
+
 
 @dataclass
 class Message:
@@ -50,9 +57,16 @@ class GerlachPersonalityLLM:
     """Base class for Gerlach personality types using Claude"""
     
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
+        # Try to get API key from multiple sources
+        if api_key:
+            self.api_key = api_key
+        elif HAS_STREAMLIT and hasattr(st, 'secrets') and 'ANTHROPIC_API_KEY' in st.secrets:
+            self.api_key = st.secrets['ANTHROPIC_API_KEY']
+        else:
+            self.api_key = os.environ.get("ANTHROPIC_API_KEY")
+        
         if not self.api_key:
-            raise ValueError("ANTHROPIC_API_KEY not found in environment")
+            raise ValueError("ANTHROPIC_API_KEY not found in environment or Streamlit secrets")
         self.client = anthropic.Anthropic(api_key=self.api_key)
         self.model = "claude-opus-4-20250514"
     
