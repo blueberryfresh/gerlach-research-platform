@@ -22,6 +22,7 @@ from agents import (
 )
 from gerlach_personality_llms import GerlachPersonalityManager
 from task_response_ui import render_task_response
+import admin_download
 
 # Configuration
 DATA_DIR = Path(__file__).parent / "research_data"
@@ -84,6 +85,9 @@ if 'current_messages' not in st.session_state:
 
 if 'survey_responses' not in st.session_state:
     st.session_state.survey_responses = {}
+
+if 'show_admin' not in st.session_state:
+    st.session_state.show_admin = False
 
 
 def render_registration():
@@ -597,9 +601,27 @@ def main():
         
         else:
             st.info("No active session")
+        
+        # Admin Tools (always visible)
+        st.markdown("---")
+        st.markdown("### 🔧 Admin Tools")
+        
+        if st.button("📊 Admin Download Center", use_container_width=True):
+            st.session_state.show_admin = True
+            st.rerun()
     
     # Main content
-    if not st.session_state.current_session:
+    # Check if admin page should be shown
+    if st.session_state.show_admin:
+        admin_download.admin_page()
+        
+        # Add back button
+        st.markdown("---")
+        if st.button("⬅️ Back to Main App", use_container_width=True):
+            st.session_state.show_admin = False
+            st.rerun()
+    
+    elif not st.session_state.current_session:
         render_registration()
     else:
         session = st.session_state.current_session
