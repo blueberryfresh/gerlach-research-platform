@@ -695,12 +695,17 @@ div[role="radiogroup"] > label > div:nth-child(2) {
 </style>
 """)
 
-    # Admin route: ?admin=1 bypasses participant flow entirely
-    if st.query_params.get("admin") == "1":
+    # If admin panel is active, render it and skip participant UI
+    if st.session_state.get("show_admin_page"):
         admin_download.admin_page()
+        with st.sidebar:
+            st.markdown("---")
+            if st.button("← Back to Study", use_container_width=True):
+                st.session_state.show_admin_page = False
+                st.rerun()
         return
 
-    # Participant sidebar — no admin UI visible
+    # Participant sidebar
     with st.sidebar:
         st.markdown("## Research Platform")
 
@@ -739,6 +744,13 @@ div[role="radiogroup"] > label > div:nth-child(2) {
                     st.rerun()
         else:
             st.info("No active session")
+
+        # Admin button — bottom of sidebar, small and unobtrusive
+        st.markdown("<br>" * 3, unsafe_allow_html=True)
+        st.markdown("---")
+        if st.button("Admin", use_container_width=False, key="admin_entry"):
+            st.session_state.show_admin_page = True
+            st.rerun()
 
     # Main content
     if not st.session_state.current_session:
