@@ -90,6 +90,27 @@ class SupervisorAgent:
         self.logger.info(f"Session {session_id} completed")
         return True
     
+    def find_active_session_by_user(self, user_id: str) -> Optional["UserSession"]:
+        """Return the most recent incomplete session for a user_id, or None."""
+        sessions_dir = self.data_dir / "sessions"
+        if not sessions_dir.exists():
+            return None
+        candidates = []
+        for path in sessions_dir.glob("*.json"):
+            try:
+                session = UserSession.load(path.stem, self.data_dir)
+                if session.user_id == user_id and session.current_stage != WorkflowStage.COMPLETED:
+                    candidates.append(session)
+            except Exception:
+                continue
+        if not candidates:
+            return None
+        # Return the most recently started session
+        candidates.sort(key=lambda s: s.started_at, reverse=True)
+        best = candidates[0]
+        self.active_sessions[best.session_id] = best
+        return best
+
     def get_workflow_status(self, session_id: str) -> Dict:
         """Get current workflow status for a session"""
         session = self.get_session(session_id)

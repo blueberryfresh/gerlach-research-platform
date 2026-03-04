@@ -33,7 +33,7 @@ st.set_page_config(
     page_title="Gerlach Research Platform",
     page_icon="🔬",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Initialize agents
@@ -91,6 +91,17 @@ if 'show_admin' not in st.session_state:
     st.session_state.show_admin = False
 
 
+_STAGE_LABELS = {
+    "registration":   "Step 1 of 3 — Questionnaires",
+    "big5_assessment":"Step 1 of 3 — Questionnaires",
+    "task_selection": "Step 2 of 3 — Collaboration Task",
+    "task_dialogue":  "Step 2 of 3 — Collaboration Task",
+    "task_response":  "Step 2 of 3 — Collaboration Task",
+    "post_survey":    "Step 3 of 3 — Follow-up Questionnaire",
+    "completed":      "Completed",
+}
+
+
 def render_registration():
     """Stage 1: User Registration"""
     st.header("Welcome to Our Study")
@@ -102,45 +113,87 @@ def render_registration():
     2. Collaborate on a task with a Large Language Model (LLM)
     3. Complete a brief follow-up questionnaire
     """)
-    
+
     st.markdown("---")
-    
-    with st.form("registration_form"):
-        st.subheader("Participant Registration")
-        
-        user_id = st.text_input(
-            "Enter your participant ID:",
-            placeholder="e.g., P001, participant_123",
-            help="This ID will be used to track your session"
+
+    tab_new, tab_resume = st.tabs(["New Participant", "Resume Session"])
+
+    # ── New Participant ───────────────────────────────────────────────────────
+    with tab_new:
+        with st.form("registration_form"):
+            st.markdown("**Enter the participant ID provided to you by the researcher.**")
+
+            user_id = st.text_input(
+                "Participant ID:",
+                placeholder="e.g., P001",
+                help="This ID will be used to track and save your progress."
+            )
+
+            consent = st.checkbox(
+                "I consent to participate in this research study",
+                help="Your data will be anonymised and used for research purposes only."
+            )
+
+            submit = st.form_submit_button("Begin Study", use_container_width=True)
+
+            if submit:
+                if not user_id:
+                    st.error("Please enter your participant ID.")
+                elif not consent:
+                    st.error("Please tick the consent box to continue.")
+                else:
+                    existing = agents['supervisor'].find_active_session_by_user(user_id.strip())
+                    if existing:
+                        # Already has a session — silently resume so they don't create a duplicate
+                        st.session_state.user_id = user_id.strip()
+                        st.session_state.current_session = existing
+                        if existing.dialogue_ids:
+                            st.session_state.current_dialogue_id = existing.dialogue_ids[-1]
+                        st.rerun()
+                    else:
+                        session = agents['supervisor'].create_user_session(
+                            user_id=user_id.strip(),
+                            metadata={"consent_given": True, "start_time": datetime.now().isoformat()}
+                        )
+                        st.session_state.user_id = user_id.strip()
+                        st.session_state.current_session = session
+                        agents['supervisor'].advance_stage(session.session_id, WorkflowStage.BIG5_ASSESSMENT)
+                        st.rerun()
+
+    # ── Resume Session ────────────────────────────────────────────────────────
+    with tab_resume:
+        st.markdown(
+            "If you started the study earlier and need to continue, "
+            "enter your **Participant ID** below."
         )
-        
-        consent = st.checkbox(
-            "I consent to participate in this research study",
-            help="Your data will be anonymized and used for research purposes only"
-        )
-        
-        submit = st.form_submit_button("Begin Research Session", use_container_width=True)
-        
-        if submit:
-            if not user_id:
-                st.error("Please enter a participant ID")
-            elif not consent:
-                st.error("Please provide consent to participate")
-            else:
-                # Create new session
-                session = agents['supervisor'].create_user_session(
-                    user_id=user_id,
-                    metadata={"consent_given": True, "start_time": datetime.now().isoformat()}
-                )
-                
-                st.session_state.user_id = user_id
-                st.session_state.current_session = session
-                
-                # Advance to assessment stage
-                agents['supervisor'].advance_stage(session.session_id, WorkflowStage.BIG5_ASSESSMENT)
-                
-                st.success(f"Session created! Session ID: {session.session_id}")
-                st.rerun()
+
+        with st.form("resume_form"):
+            resume_id = st.text_input(
+                "Participant ID:",
+                placeholder="e.g., P001",
+                key="resume_id_input"
+            )
+            resume_btn = st.form_submit_button("Resume My Session", use_container_width=True)
+
+            if resume_btn:
+                if not resume_id:
+                    st.error("Please enter your participant ID.")
+                else:
+                    existing = agents['supervisor'].find_active_session_by_user(resume_id.strip())
+                    if existing:
+                        stage_label = _STAGE_LABELS.get(existing.current_stage.value, "In progress")
+                        st.session_state.user_id = resume_id.strip()
+                        st.session_state.current_session = existing
+                        if existing.dialogue_ids:
+                            st.session_state.current_dialogue_id = existing.dialogue_ids[-1]
+                        st.success(f"Welcome back! Resuming from: **{stage_label}**")
+                        st.rerun()
+                    else:
+                        st.warning(
+                            "No active session found for that ID. "
+                            "If you have already completed the study, thank you for your participation. "
+                            "If you believe this is an error, please contact the researcher."
+                        )
 
 
 def render_big5_assessment():
@@ -186,8 +239,14 @@ def render_big5_assessment():
         if submit:
             unanswered = [k for k, v in responses.items() if v is None]
             if unanswered:
-                st.error(f"Please answer all questions before submitting. "
-                         f"You have {len(unanswered)} unanswered question(s).")
+                st.toast(
+                    f"Almost there! Please answer all {len(unanswered)} remaining question(s) before continuing.",
+                    icon="💬"
+                )
+                st.warning(
+                    f"**Almost there!** It looks like {len(unanswered)} question(s) still need a response. "
+                    "Please scroll through and make sure every item has been rated before submitting."
+                )
             else:
                 assessment = agents['assessment'].conduct_assessment(
                     user_id=st.session_state.user_id,
@@ -409,7 +468,14 @@ def render_post_survey():
             # Validate all Likert items answered
             unanswered = [k for k in likert_questions if responses.get(k) is None]
             if unanswered:
-                st.error(f"Please answer all rating questions before submitting. ({len(unanswered)} unanswered)")
+                st.toast(
+                    f"Almost there! Please answer all {len(unanswered)} remaining question(s) before continuing.",
+                    icon="💬"
+                )
+                st.warning(
+                    f"**Almost there!** It looks like {len(unanswered)} question(s) still need a response. "
+                    "Please scroll through and make sure every item has been rated before submitting."
+                )
             else:
                 agents['survey'].conduct_survey(
                     user_id=st.session_state.user_id,
@@ -513,6 +579,33 @@ def render_completed():
 
 # Main App
 def main():
+    # Radio layout: number on top, circle dial below
+    # st.html() injects directly into the main page (no iframe) — most reliable method
+    st.html("""
+<style>
+/* Each option label: vertical stack, centred */
+div[role="radiogroup"] > label {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 0 12px !important;
+    cursor: pointer;
+}
+/* Circle wrapper: rendered second (bottom) */
+div[role="radiogroup"] > label > div:nth-child(1) {
+    order: 2 !important;
+    margin: 0 !important;
+}
+/* Number text: rendered first (top) */
+div[role="radiogroup"] > label > div:nth-child(2) {
+    order: 1 !important;
+    font-weight: 600;
+    text-align: center !important;
+}
+</style>
+""")
+
     # Admin route: ?admin=1 bypasses participant flow entirely
     if st.query_params.get("admin") == "1":
         admin_download.admin_page()
@@ -524,7 +617,14 @@ def main():
 
         if st.session_state.current_session:
             session = st.session_state.current_session
-            st.markdown(f"**Participant:** {st.session_state.user_id}")
+            stage_label = _STAGE_LABELS.get(session.current_stage.value, "In progress")
+            st.markdown(f"**Participant ID:** `{st.session_state.user_id}`")
+            st.markdown(f"**Progress:** {stage_label}")
+            st.info(
+                "Need to stop and return later? "
+                "Simply close this window and use the **Resume Session** tab "
+                f"with your ID **`{st.session_state.user_id}`** to continue where you left off."
+            )
         else:
             st.info("No active session")
 
