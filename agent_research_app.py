@@ -276,17 +276,13 @@ REQUIRED_TASKS = ["NOBLE INDUSTRIES for Big5.pdf", "Popcorn brain task for Big5.
 
 
 @st.cache_data
-def _read_task_text(task_name: str) -> str:
-    """Extract text from a task PDF. Cached so it's only read once per session."""
+def _read_task_pdf_b64(task_name: str) -> str:
+    """Read PDF as base64 string for inline embedding. Cached per session."""
+    import base64
     task_path = TASK_FOLDER / task_name
     if not task_path.exists():
         return ""
-    try:
-        from PyPDF2 import PdfReader
-        reader = PdfReader(str(task_path))
-        return "\n\n".join(page.extract_text() or "" for page in reader.pages).strip()
-    except Exception:
-        return ""
+    return base64.b64encode(task_path.read_bytes()).decode()
 
 
 def _get_or_assign(session):
@@ -331,10 +327,14 @@ def render_task_selection():
     st.markdown("Please read the task description carefully before beginning.")
     st.markdown("---")
 
-    # Show full task description from PDF
-    task_text = _read_task_text(assigned_task)
-    if task_text:
-        st.markdown(task_text)
+    # Embed the PDF directly so all original formatting and tables are preserved
+    pdf_b64 = _read_task_pdf_b64(assigned_task)
+    if pdf_b64:
+        st.markdown(
+            f'<iframe src="data:application/pdf;base64,{pdf_b64}" '
+            f'width="100%" height="720px" style="border:none;border-radius:6px;"></iframe>',
+            unsafe_allow_html=True
+        )
     else:
         st.info("Task document loaded. Please refer to any printed materials provided.")
 
