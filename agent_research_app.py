@@ -711,6 +711,18 @@ div[role="radiogroup"] > label > div:nth-child(2) {
             st.markdown(f"**Progress:** {stage_label}")
             st.markdown("---")
 
+            # Always-visible instructions
+            st.info(
+                "**Need to stop?** Click the **Save & Exit** button below. "
+                "Your progress will be saved automatically."
+            )
+            st.info(
+                "**Returning to the study?** Click the **Resume Session** tab "
+                f"on the home page and enter your ID **`{st.session_state.user_id}`** "
+                "to continue where you left off."
+            )
+            st.markdown("---")
+
             if st.button("💾 Save & Exit", use_container_width=True):
                 st.session_state.show_save_exit = True
 
