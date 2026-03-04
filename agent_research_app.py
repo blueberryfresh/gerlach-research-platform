@@ -707,7 +707,8 @@ div[role="radiogroup"] > label > div:nth-child(2) {
         if st.session_state.current_session:
             session = st.session_state.current_session
             stage_label = _STAGE_LABELS.get(session.current_stage.value, "In progress")
-            st.markdown(f"**Participant ID:** `{st.session_state.user_id}`")
+            st.markdown(f"**Participant ID:**")
+            st.markdown(f"<span style='font-size:1.6rem;font-weight:700;letter-spacing:0.05em;'>{st.session_state.user_id}</span>", unsafe_allow_html=True)
             st.markdown(f"**Progress:** {stage_label}")
             st.markdown("---")
 
