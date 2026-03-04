@@ -3,6 +3,7 @@ Multi-Agent Research Application
 Integrated Streamlit interface for the complete research workflow
 """
 
+import random
 import streamlit as st
 from pathlib import Path
 from datetime import datetime
@@ -92,14 +93,14 @@ if 'show_admin' not in st.session_state:
 
 def render_registration():
     """Stage 1: User Registration"""
-    st.header("🔬 Welcome to the Gerlach Personality Research Platform")
-    
+    st.header("Welcome to Our Study")
+
     st.markdown("""
-    This research platform allows you to:
-    1. Complete a Big Five personality assessment
-    2. Solve tasks with AI personalities
-    3. Provide feedback through surveys
-    4. Receive a comprehensive research report
+    Thank you for participating. In this study, you will be asked to:
+
+    1. Answer a few questionnaires
+    2. Collaborate on a task with a Large Language Model (LLM)
+    3. Complete a brief follow-up questionnaire
     """)
     
     st.markdown("---")
@@ -144,330 +145,283 @@ def render_registration():
 
 def render_big5_assessment():
     """Stage 2: Big5 Personality Assessment"""
-    st.header("📋 Big Five Personality Assessment")
-    
+    st.header("📋 Personality Assessment")
+
     st.markdown("""
-    Please rate how much you agree with each statement on a scale of 1-5:
+    The following questions are designed to learn about the kinds of personality attributes you have.
+    You will be presented with a series of statements describing how people may think, feel, or behave.
+    For each statement, please indicate how much you agree or disagree based on how you generally are —
+    there are no right or wrong answers.
+
+    Please rate each statement on a scale of 1–5:
     - **1** = Strongly Disagree
     - **2** = Disagree
     - **3** = Neutral
     - **4** = Agree
     - **5** = Strongly Agree
+
+    There are 50 statements in total. Please select one option for each statement before submitting.
     """)
-    
+
     st.markdown("---")
-    
+
     items = agents['assessment'].get_assessment_items()
-    
+
     with st.form("assessment_form"):
         responses = {}
-        
-        # Group by trait for better organization
-        traits = {
-            "extraversion": "Extraversion (Social & Energetic)",
-            "agreeableness": "Agreeableness (Cooperative & Trusting)",
-            "conscientiousness": "Conscientiousness (Organized & Disciplined)",
-            "neuroticism": "Neuroticism (Emotional Stability)",
-            "openness": "Openness (Creative & Curious)"
-        }
-        
-        for trait_key, trait_name in traits.items():
-            with st.expander(f"📌 {trait_name}", expanded=False):
-                trait_items = [item for item in items if item['trait'] == trait_key]
-                
-                for item in trait_items:
-                    responses[item['id']] = st.radio(
-                        item['text'],
-                        options=[1, 2, 3, 4, 5],
-                        index=2,
-                        horizontal=True,
-                        key=f"q_{item['id']}"
-                    )
-        
-        submit = st.form_submit_button("Submit Assessment", use_container_width=True)
-        
-        if submit:
-            # Conduct assessment
-            assessment = agents['assessment'].conduct_assessment(
-                user_id=st.session_state.user_id,
-                session_id=st.session_state.current_session.session_id,
-                responses=responses
+
+        for i, item in enumerate(items, 1):
+            responses[item['id']] = st.radio(
+                f"**{i}.** {item['text']}",
+                options=[1, 2, 3, 4, 5],
+                index=None,
+                horizontal=True,
+                key=f"q_{item['id']}"
             )
-            
-            # Update session
-            session = st.session_state.current_session
-            session.big5_assessment_id = assessment.assessment_id
-            session.save(DATA_DIR)
-            
-            # Advance to task selection
-            agents['supervisor'].advance_stage(session.session_id, WorkflowStage.TASK_SELECTION)
-            
-            st.success("✅ Assessment completed!")
-            st.balloons()
-            
-            # Show results
-            st.markdown("### Your Big Five Scores")
-            col1, col2, col3, col4, col5 = st.columns(5)
-            
-            cols = [col1, col2, col3, col4, col5]
-            traits_list = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism']
-            
-            for col, trait in zip(cols, traits_list):
-                score = getattr(assessment, trait)
-                col.metric(trait.title(), f"{score:.1f}")
-            
-            st.info(f"**Gerlach Personality Type:** {assessment.gerlach_type.replace('_', ' ').title()}")
-            
-            st.rerun()
+            if i % 10 == 0 and i < len(items):
+                st.markdown("---")
+
+        submit = st.form_submit_button("Submit Assessment", use_container_width=True)
+
+        if submit:
+            unanswered = [k for k, v in responses.items() if v is None]
+            if unanswered:
+                st.error(f"Please answer all questions before submitting. "
+                         f"You have {len(unanswered)} unanswered question(s).")
+            else:
+                assessment = agents['assessment'].conduct_assessment(
+                    user_id=st.session_state.user_id,
+                    session_id=st.session_state.current_session.session_id,
+                    responses=responses
+                )
+
+                session = st.session_state.current_session
+                session.big5_assessment_id = assessment.assessment_id
+                session.save(DATA_DIR)
+
+                agents['supervisor'].advance_stage(session.session_id, WorkflowStage.TASK_SELECTION)
+
+                st.success("✅ Assessment completed!")
+                st.balloons()
+                st.rerun()
+
+
+PERSONALITY_LABELS = {
+    "average": "⚖️ Average",
+    "role_model": "⭐ Role Model",
+    "self_centred": "🎯 Self-Centred",
+    "reserved": "🤫 Reserved",
+}
+
+REQUIRED_TASKS = ["NOBLE INDUSTRIES for Big5.pdf", "Popcorn brain task for Big5.pdf"]
+
+
+@st.cache_data
+def _read_task_text(task_name: str) -> str:
+    """Extract text from a task PDF. Cached so it's only read once per session."""
+    task_path = TASK_FOLDER / task_name
+    if not task_path.exists():
+        return ""
+    try:
+        from PyPDF2 import PdfReader
+        reader = PdfReader(str(task_path))
+        return "\n\n".join(page.extract_text() or "" for page in reader.pages).strip()
+    except Exception:
+        return ""
+
+
+def _get_or_assign(session):
+    """Return (task, personality), randomly assigning on first call and persisting in metadata."""
+    if "assigned_task" not in session.metadata:
+        # Validate task files exist before assigning
+        if not TASK_FOLDER.exists():
+            return None, None
+        task_names = [t.name for t in TASK_FOLDER.glob("*.pdf")]
+        missing = [t for t in REQUIRED_TASKS if t not in task_names]
+        if missing:
+            return None, None
+
+        session.metadata["assigned_task"] = random.choice(REQUIRED_TASKS)
+        session.metadata["assigned_personality"] = random.choice(list(PERSONALITY_LABELS.keys()))
+        session.save(DATA_DIR)
+
+    return session.metadata["assigned_task"], session.metadata["assigned_personality"]
 
 
 def render_task_selection():
-    """Stage 3: Task Selection"""
-    st.header("📄 Select a Task")
-    
-    st.markdown("Choose a task to work on with an AI personality:")
-    
-    # Get available tasks
-    if TASK_FOLDER.exists():
-        tasks = list(TASK_FOLDER.glob("*.pdf")) + list(TASK_FOLDER.glob("*.txt")) + list(TASK_FOLDER.glob("*.md"))
-        task_names = [t.name for t in tasks]
-    else:
-        task_names = []
-        st.warning("No tasks folder found")
-    
-    # Get assessment to show personality type
+    """Stage 3: Show assigned task description for participant to read."""
     session = st.session_state.current_session
-    if session.big5_assessment_id:
-        assessment = agents['assessment'].get_assessment(session.big5_assessment_id)
-        if assessment:
-            st.info(f"Your personality type: **{assessment.gerlach_type.replace('_', ' ').title()}**")
-    
+
+    # Validate task files
+    if not TASK_FOLDER.exists():
+        st.error("Task folder not found. Please ensure the `Task/` directory exists with the required PDFs.")
+        return
+    task_names = [t.name for t in TASK_FOLDER.glob("*.pdf")]
+    missing = [t for t in REQUIRED_TASKS if t not in task_names]
+    if missing:
+        st.error(f"Required task files missing from `Task/` folder: {', '.join(missing)}")
+        return
+
+    assigned_task, assigned_personality = _get_or_assign(session)
+    if not assigned_task:
+        st.error("Could not assign a task. Please contact the researcher.")
+        return
+
+    task_display_name = assigned_task.replace(".pdf", "")
+    st.header(f"📄 Your Task: {task_display_name}")
+    st.markdown("Please read the task description carefully before beginning.")
     st.markdown("---")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("Select Task")
-        selected_task = st.selectbox(
-            "Choose a task:",
-            task_names if task_names else ["No tasks available"],
-            key="task_selection"
-        )
-    
-    with col2:
-        st.subheader("Select AI Personality")
-        personalities = {
-            "average": "⚖️ Average - Balanced & Practical",
-            "role_model": "⭐ Role Model - Optimistic & Organized",
-            "self_centred": "🎯 Self-Centred - Direct & Competitive",
-            "reserved": "🤫 Reserved - Calm & Conventional"
-        }
-        
-        selected_personality = st.selectbox(
-            "Choose AI personality:",
-            list(personalities.keys()),
-            format_func=lambda x: personalities[x],
-            key="personality_selection"
-        )
-    
-    if st.button("Start Task Dialogue", use_container_width=True, type="primary"):
+
+    # Show full task description from PDF
+    task_text = _read_task_text(assigned_task)
+    if task_text:
+        st.markdown(task_text)
+    else:
+        st.info("Task document loaded. Please refer to any printed materials provided.")
+
+    st.markdown("---")
+    st.info("When you have finished reading and are ready to begin, click the button below. "
+            "An AI assistant will be available to help you work through the task.")
+
+    if st.button("I have read the task — Begin", use_container_width=True, type="primary"):
         if not agents['llm_ready']:
             st.error("LLM Manager not ready. Please set ANTHROPIC_API_KEY.")
         else:
-            # Start dialogue
             dialogue = agents['dialogue'].start_dialogue(
                 user_id=st.session_state.user_id,
                 session_id=session.session_id,
-                task_name=selected_task,
-                llm_personality=selected_personality
+                task_name=assigned_task,
+                llm_personality=assigned_personality
             )
-            
+
             st.session_state.current_dialogue_id = dialogue.dialogue_id
             st.session_state.current_messages = []
-            
-            # Update session
+
             session.dialogue_records.append(dialogue.dialogue_id)
             session.save(DATA_DIR)
-            
-            # Advance to dialogue stage
+
             agents['supervisor'].advance_stage(session.session_id, WorkflowStage.TASK_DIALOGUE)
-            
-            st.success(f"Started dialogue with {personalities[selected_personality]}")
             st.rerun()
 
 
 def render_task_dialogue():
-    """Stage 4: Task Dialogue"""
+    """Stage 4: Task Dialogue — task description at top, chat in middle, complete at bottom."""
     dialogue_id = st.session_state.current_dialogue_id
     dialogue = agents['dialogue'].get_dialogue(dialogue_id)
-    
+
     if not dialogue:
         st.error("Dialogue not found")
         return
-    
-    st.header(f"💬 Task Dialogue: {dialogue.task_name}")
-    
-    personality_info = {
-        "average": {"emoji": "⚖️", "name": "Average", "color": "#7570b3"},
-        "role_model": {"emoji": "⭐", "name": "Role Model", "color": "#1b9e77"},
-        "self_centred": {"emoji": "🎯", "name": "Self-Centred", "color": "#d95f02"},
-        "reserved": {"emoji": "🤫", "name": "Reserved", "color": "#e7298a"}
-    }
-    
-    info = personality_info.get(dialogue.llm_personality, {})
-    
-    st.markdown(
-        f"""<div style='background:{info.get('color', '#666')};color:white;padding:15px;border-radius:10px;margin-bottom:20px;'>
-        <h3 style='margin:0;'>{info.get('emoji', '')} Chatting with: {info.get('name', dialogue.llm_personality)}</h3>
-        <p style='margin:5px 0 0 0;'>Task: {dialogue.task_name}</p>
-        </div>""",
-        unsafe_allow_html=True
-    )
-    
-    # Display messages
+
+    task_display_name = dialogue.task_name.replace(".pdf", "")
+    st.header(f"💬 {task_display_name}")
+
+    # ── Task description (always accessible at top) ─────────────────────────
+    task_text = _read_task_text(dialogue.task_name)
+    with st.expander("📄 Task Description (click to expand / collapse)", expanded=True):
+        if task_text:
+            st.markdown(task_text)
+        else:
+            st.info(f"Task: {task_display_name}")
+
+    st.markdown("---")
+
+    # ── Dialogue history (scrollable) ───────────────────────────────────────
     for msg in dialogue.messages:
         if msg.role == "user":
             st.chat_message("user").write(msg.content)
         else:
-            st.chat_message("assistant", avatar=info.get('emoji', '🤖')).write(msg.content)
-    
-    # Chat input
-    user_input = st.chat_input("Type your message...")
-    
-    if user_input:
-        # Record user message
-        agents['dialogue'].record_message(dialogue_id, "user", user_input)
-        
-        # Get LLM response
-        personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
-        
-        # Build message history
-        messages = [{"role": m.role, "content": m.content} for m in dialogue.messages]
-        
-        with st.spinner(f"{info.get('emoji', '🤖')} Thinking..."):
-            response = personality.chat(messages)
-        
-        # Record assistant message
-        agents['dialogue'].record_message(dialogue_id, "assistant", response)
-        
-        st.rerun()
-    
-    # End dialogue button
+            st.chat_message("assistant", avatar="🤖").write(msg.content)
+
+    # ── Complete Task button (below conversation) ────────────────────────────
     st.markdown("---")
     col1, col2 = st.columns([3, 1])
-    
     with col1:
-        st.metric("Messages Exchanged", dialogue.total_messages)
-    
+        st.metric("Messages exchanged", dialogue.total_messages)
     with col2:
-        if st.button("End Dialogue", use_container_width=True, type="primary"):
+        if st.button("Complete Task", use_container_width=True, type="primary"):
             agents['dialogue'].end_dialogue(dialogue_id)
-            
-            # Advance to task response (task-specific data capture)
             agents['supervisor'].advance_stage(
                 st.session_state.current_session.session_id,
                 WorkflowStage.TASK_RESPONSE
             )
-            
-            st.success("Dialogue ended!")
             st.rerun()
+
+    # ── Chat input (Streamlit renders this sticky at viewport bottom) ────────
+    user_input = st.chat_input("Type your message to the AI assistant…")
+
+    if user_input:
+        agents['dialogue'].record_message(dialogue_id, "user", user_input)
+
+        personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
+        messages = [{"role": m.role, "content": m.content} for m in dialogue.messages]
+
+        with st.spinner("AI Assistant is thinking…"):
+            response = personality.chat(messages)
+
+        agents['dialogue'].record_message(dialogue_id, "assistant", response)
+        st.rerun()
 
 
 def render_post_survey():
     """Stage 5: Post-Experiment Survey"""
-    st.header("📊 Post-Experiment Survey")
-    
-    dialogue_id = st.session_state.current_dialogue_id
-    dialogue = agents['dialogue'].get_dialogue(dialogue_id)
-    
-    if dialogue:
-        st.info(f"Please provide feedback on your experience with **{dialogue.llm_personality.replace('_', ' ').title()}** on task: **{dialogue.task_name}**")
-    
+    st.header("Post-Experiment Survey")
+
+    st.markdown(
+        "Please read each statement carefully and select the response that best reflects your experience. "
+        "Use the scale: **1 = Strongly Disagree** &nbsp; **7 = Strongly Agree**"
+    )
     st.markdown("---")
-    
+
+    dialogue_id = st.session_state.current_dialogue_id
     questions = agents['survey'].get_survey_questions()
-    
-    st.markdown("""
-    **Instructions**: There are 37 questions total. Please read carefully and answer as best as you can.
-    
-    For rating questions (1-31): Use the scale where **1 = Strongly Disagree** and **7 = Strongly Agree**
-    """)
-    
+    likert_questions = {k: v for k, v in questions.items() if v['type'] == 'likert'}
+    text_questions = {k: v for k, v in questions.items() if v['type'] == 'text'}
+
     with st.form("survey_form"):
         responses = {}
-        
-        # Likert scale questions (Q1-Q31)
-        st.subheader("Part 1: Rating Questions (1-31)")
-        st.markdown("*Rate each statement on a scale of 1-7*")
-        
-        likert_questions = {k: v for k, v in questions.items() if v['type'] == 'likert'}
-        
-        # Display in groups for better organization
+
+        # Likert items — no section headers, no default selection
         for i, (key, q_data) in enumerate(likert_questions.items(), 1):
-            responses[key] = st.slider(
-                f"**Q{i}.** {q_data['question']}",
-                min_value=q_data['scale'][0],
-                max_value=q_data['scale'][1],
-                value=4,
-                help="1 = Strongly Disagree, 4 = Neutral, 7 = Strongly Agree",
+            responses[key] = st.radio(
+                f"**{i}.** {q_data['question']}",
+                options=[1, 2, 3, 4, 5, 6, 7],
+                index=None,
+                horizontal=True,
                 key=f"survey_{key}"
             )
-            
-            # Add spacing every 5 questions for readability
-            if i % 5 == 0 and i < len(likert_questions):
-                st.markdown("---")
-        
+            st.markdown("")  # small vertical gap between items
+
         st.markdown("---")
-        st.subheader("Part 2: Open-Ended Questions (32-37)")
-        st.markdown("*Please provide detailed responses*")
-        
-        # Text questions (Q32-Q37)
-        text_questions = {k: v for k, v in questions.items() if v['type'] == 'text'}
-        
-        for i, (key, q_data) in enumerate(text_questions.items(), 32):
+
+        # Open-ended items — no section headers
+        for i, (key, q_data) in enumerate(text_questions.items(), len(likert_questions) + 1):
             responses[key] = st.text_area(
-                f"**Q{i}.** {q_data['question']}",
+                f"**{i}.** {q_data['question']}",
                 placeholder=q_data.get('placeholder', ''),
                 key=f"survey_{key}",
                 height=120
             )
-        
-        submit = st.form_submit_button("Submit Survey", use_container_width=True)
-        
+
+        submit = st.form_submit_button("Submit Survey", use_container_width=True, type="primary")
+
         if submit:
-            # Conduct survey
-            survey = agents['survey'].conduct_survey(
-                user_id=st.session_state.user_id,
-                session_id=st.session_state.current_session.session_id,
-                dialogue_id=dialogue_id,
-                responses=responses
-            )
-            
-            st.success("✅ Survey submitted!")
-            
-            # Check if user wants to do another task or finish
-            st.markdown("---")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                if st.button("Work on Another Task", use_container_width=True):
-                    # Go back to task selection
-                    agents['supervisor'].advance_stage(
-                        st.session_state.current_session.session_id,
-                        WorkflowStage.TASK_SELECTION
-                    )
-                    st.session_state.current_dialogue_id = None
-                    st.rerun()
-            
-            with col2:
-                if st.button("Complete Session & Generate Report", use_container_width=True, type="primary"):
-                    # Generate report and complete
-                    agents['supervisor'].advance_stage(
-                        st.session_state.current_session.session_id,
-                        WorkflowStage.COMPLETED
-                    )
-                    st.rerun()
+            # Validate all Likert items answered
+            unanswered = [k for k in likert_questions if responses.get(k) is None]
+            if unanswered:
+                st.error(f"Please answer all rating questions before submitting. ({len(unanswered)} unanswered)")
+            else:
+                agents['survey'].conduct_survey(
+                    user_id=st.session_state.user_id,
+                    session_id=st.session_state.current_session.session_id,
+                    dialogue_id=dialogue_id,
+                    responses=responses
+                )
+                agents['supervisor'].advance_stage(
+                    st.session_state.current_session.session_id,
+                    WorkflowStage.COMPLETED
+                )
+                st.rerun()
 
 
 def render_completed():
@@ -559,73 +513,31 @@ def render_completed():
 
 # Main App
 def main():
-    # Sidebar
+    # Admin route: ?admin=1 bypasses participant flow entirely
+    if st.query_params.get("admin") == "1":
+        admin_download.admin_page()
+        return
+
+    # Participant sidebar — no admin UI visible
     with st.sidebar:
-        st.markdown("## 🔬 Research Platform")
-        
+        st.markdown("## Research Platform")
+
         if st.session_state.current_session:
             session = st.session_state.current_session
-            
-            st.markdown(f"**User:** {st.session_state.user_id}")
-            st.markdown(f"**Session:** {session.session_id[:12]}...")
-            
-            # Workflow progress
-            st.markdown("---")
-            st.markdown("### Workflow Progress")
-            
-            stages = [
-                ("Registration", WorkflowStage.REGISTRATION),
-                ("Assessment", WorkflowStage.BIG5_ASSESSMENT),
-                ("Task Selection", WorkflowStage.TASK_SELECTION),
-                ("Dialogue", WorkflowStage.TASK_DIALOGUE),
-                ("Task Response", WorkflowStage.TASK_RESPONSE),
-                ("Survey", WorkflowStage.POST_SURVEY),
-                ("Completed", WorkflowStage.COMPLETED)
-            ]
-            
-            for stage_name, stage_enum in stages:
-                if stage_enum.value in session.completed_stages:
-                    st.markdown(f"✅ {stage_name}")
-                elif session.current_stage == stage_enum:
-                    st.markdown(f"▶️ **{stage_name}** (current)")
-                else:
-                    st.markdown(f"⏸️ {stage_name}")
-            
-            # Statistics
-            st.markdown("---")
-            st.markdown("### Statistics")
-            
-            stats = agents['supervisor'].get_statistics()
-            st.metric("Total Sessions", stats['total_sessions'])
-            st.metric("Total Dialogues", stats['total_dialogues'])
-        
+            st.markdown(f"**Participant:** {st.session_state.user_id}")
         else:
             st.info("No active session")
-        
-        # Admin Tools (always visible)
-        st.markdown("---")
-        st.markdown("### 🔧 Admin Tools")
-        
-        if st.button("📊 Admin Download Center", use_container_width=True):
-            st.session_state.show_admin = True
-            st.rerun()
-    
+
     # Main content
-    # Check if admin page should be shown
-    if st.session_state.show_admin:
-        admin_download.admin_page()
-        
-        # Add back button
-        st.markdown("---")
-        if st.button("⬅️ Back to Main App", use_container_width=True):
-            st.session_state.show_admin = False
-            st.rerun()
-    
-    elif not st.session_state.current_session:
+    if not st.session_state.current_session:
         render_registration()
     else:
+        # Always reload session from supervisor to get authoritative current_stage
+        fresh = agents['supervisor'].get_session(st.session_state.current_session.session_id)
+        if fresh:
+            st.session_state.current_session = fresh
         session = st.session_state.current_session
-        
+
         if session.current_stage == WorkflowStage.BIG5_ASSESSMENT:
             render_big5_assessment()
         elif session.current_stage == WorkflowStage.TASK_SELECTION:

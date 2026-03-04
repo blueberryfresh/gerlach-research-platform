@@ -150,12 +150,16 @@ class DialogueRecord:
             self.assistant_message_count += 1
     
     def end_dialogue(self):
-        """Mark dialogue as ended and calculate duration"""
+        """Mark dialogue as ended and calculate duration from first message to Complete click."""
         self.ended_at = datetime.now().isoformat()
-        if self.started_at and self.ended_at:
-            start = datetime.fromisoformat(self.started_at)
-            end = datetime.fromisoformat(self.ended_at)
-            self.duration_seconds = (end - start).total_seconds()
+        end = datetime.fromisoformat(self.ended_at)
+        if self.messages:
+            # Duration = first message sent → Complete button clicked
+            first_msg_time = datetime.fromisoformat(self.messages[0].timestamp)
+            self.duration_seconds = (end - first_msg_time).total_seconds()
+        else:
+            # No messages — fall back to dialogue creation time
+            self.duration_seconds = (end - datetime.fromisoformat(self.started_at)).total_seconds()
     
     def to_dict(self) -> Dict:
         data = asdict(self)

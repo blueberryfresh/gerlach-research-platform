@@ -34,16 +34,15 @@ def render_noble_industries(agents, session, dialogue):
     st.header("📊 Noble Industries - Candidate Rankings")
     
     st.markdown(f"""
-    **Task Completed**: {dialogue.task_name}  
-    **LLM Partner**: {dialogue.llm_personality.replace('_', ' ').title()}  
+    **Task Completed**: {dialogue.task_name.replace('.pdf', '')}
     **Messages Exchanged**: {dialogue.total_messages}
     """)
-    
+
     st.markdown("---")
-    
+
     st.markdown("""
     ### Instructions
-    Please rank the candidates you discussed with the LLM and provide your rationale for each ranking.
+    Please rank the candidates you discussed with the AI assistant and provide your rationale for each ranking.
     
     - **Rank 1** = Top choice (best candidate)
     - **Rank 2** = Second choice
@@ -140,13 +139,12 @@ def render_popcorn_brain(agents, session, dialogue):
     st.header("🧠 Popcorn Brain - Creative Performance Assessment")
     
     st.markdown(f"""
-    **Task Completed**: {dialogue.task_name}  
-    **LLM Partner**: {dialogue.llm_personality.replace('_', ' ').title()}  
+    **Task Completed**: {dialogue.task_name.replace('.pdf', '')}
     **Messages Exchanged**: {dialogue.total_messages}
     """)
-    
+
     st.markdown("---")
-    
+
     st.markdown("""
     ### Instructions
     Please assess your creative performance during the task-solving dialogue.
@@ -215,65 +213,26 @@ def render_popcorn_brain(agents, session, dialogue):
         submit = st.form_submit_button("Submit Assessment", use_container_width=True, type="primary")
         
         if submit:
-            # Capture assessment with automated metrics
             self_ratings = {
                 'originality': originality,
                 'flexibility': flexibility,
                 'elaboration': elaboration,
                 'fluency': fluency
             }
-            
-            with st.spinner("Analyzing your dialogue for creative metrics..."):
-                task_response = agents['task_response'].capture_popcorn_assessment(
-                    user_id=session.user_id,
-                    session_id=session.session_id,
-                    dialogue_id=dialogue.dialogue_id,
-                    self_ratings=self_ratings,
-                    dialogue_agent=agents['dialogue']
-                )
-            
+
+            task_response = agents['task_response'].capture_popcorn_assessment(
+                user_id=session.user_id,
+                session_id=session.session_id,
+                dialogue_id=dialogue.dialogue_id,
+                self_ratings=self_ratings,
+                dialogue_agent=agents['dialogue']
+            )
+
             # Update session
             session.task_response_ids.append(task_response.task_response_id)
             session.save(Path(agents['supervisor'].data_dir))
-            
-            # Show computed metrics
-            st.success("✅ Assessment submitted successfully!")
-            
-            st.markdown("### 📊 Automated Analysis Results")
-            
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                st.metric(
-                    "Unique Ideas",
-                    task_response.unique_ideas,
-                    help="Ideas detected in your messages"
-                )
-            
-            with col2:
-                st.metric(
-                    "Alternatives",
-                    task_response.alternative_approaches,
-                    help="Alternative approaches you presented"
-                )
-            
-            with col3:
-                st.metric(
-                    "Details Added",
-                    task_response.detail_instances,
-                    help="Elaboration instances detected"
-                )
-            
-            with col4:
-                st.metric(
-                    "Ideas/Min",
-                    f"{task_response.ideas_per_minute:.2f}",
-                    help="Rate of idea generation"
-                )
-            
-            # Advance to survey
+
+            # Advance to survey silently — metrics recorded for admin report only
             from agents import WorkflowStage
             agents['supervisor'].advance_stage(session.session_id, WorkflowStage.POST_SURVEY)
-            
-            if st.button("Continue to Survey", use_container_width=True, type="primary"):
-                st.rerun()
+            st.rerun()

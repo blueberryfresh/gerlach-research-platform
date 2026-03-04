@@ -3,6 +3,7 @@ Admin Download Page for Gerlach Research Platform
 Password-protected data export
 """
 
+import os
 import streamlit as st
 import json
 import zipfile
@@ -10,35 +11,42 @@ import io
 from pathlib import Path
 from datetime import datetime
 
-ADMIN_PASSWORD = "Big5llmstudy"
+DATA_DIR = Path(__file__).parent / "research_data"
+
+
+def _get_admin_password():
+    try:
+        return st.secrets["ADMIN_PASSWORD"]
+    except Exception:
+        return os.environ.get("ADMIN_PASSWORD", "")
+
 
 def check_password():
     """Password protection for admin page"""
-    
+
     if "admin_authenticated" not in st.session_state:
         st.session_state.admin_authenticated = False
-    
+
     if st.session_state.admin_authenticated:
         return True
-    
+
     st.title("🔒 Admin Access")
     st.write("Enter password to access data download page")
-    
+
     password = st.text_input("Password", type="password", key="admin_password_input")
-    
+
     if st.button("Login"):
-        if password == ADMIN_PASSWORD:
+        if password == _get_admin_password():
             st.session_state.admin_authenticated = True
             st.rerun()
         else:
             st.error("❌ Incorrect password")
-    
+
     return False
 
 def get_all_participants():
     """Get list of all participants from session files"""
-    data_dir = Path("research_data")
-    sessions_dir = data_dir / "sessions"
+    sessions_dir = DATA_DIR / "sessions"
     
     if not sessions_dir.exists():
         return []
@@ -62,8 +70,8 @@ def get_all_participants():
 
 def create_zip_all_data():
     """Create ZIP file containing all research data"""
-    data_dir = Path("research_data")
-    
+    data_dir = DATA_DIR
+
     if not data_dir.exists():
         return None
     
@@ -90,8 +98,8 @@ def create_zip_all_data():
 
 def create_zip_participant_data(user_id):
     """Create ZIP file for a specific participant"""
-    data_dir = Path("research_data")
-    
+    data_dir = DATA_DIR
+
     if not data_dir.exists():
         return None
     
@@ -119,8 +127,8 @@ def create_zip_participant_data(user_id):
 def export_to_csv():
     """Export all data to CSV format for analysis"""
     import csv
-    
-    data_dir = Path("research_data")
+
+    data_dir = DATA_DIR
     csv_buffer = io.StringIO()
     
     csv_writer = csv.writer(csv_buffer)
