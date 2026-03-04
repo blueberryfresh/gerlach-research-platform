@@ -214,7 +214,7 @@ def admin_page():
     
     st.markdown("---")
     
-    tab1, tab2, tab3 = st.tabs(["📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator"])
     
     with tab1:
         st.header("Download All Research Data")
@@ -299,6 +299,87 @@ def admin_page():
                     st.write("- Survey completion status")
                 else:
                     st.error("❌ No data found to export")
+
+    with tab4:
+        st.header("Stage Navigator")
+        st.markdown(
+            "Jump any participant's session to a specific stage. "
+            "Use this for testing, reviewing what participants see, or assisting a stuck participant."
+        )
+        st.warning("This directly modifies a session's current stage. Use with care.")
+
+        participants = get_all_participants()
+
+        STAGES = [
+            "registration",
+            "big5_assessment",
+            "task_selection",
+            "task_dialogue",
+            "task_response",
+            "post_survey",
+            "completed",
+        ]
+        STAGE_LABELS = {
+            "registration":    "1 — Registration",
+            "big5_assessment": "2 — Big5 Assessment",
+            "task_selection":  "3 — Task Selection",
+            "task_dialogue":   "4 — Task Dialogue",
+            "task_response":   "5 — Task Response",
+            "post_survey":     "6 — Post-Experiment Survey",
+            "completed":       "7 — Completed",
+        }
+
+        if not participants:
+            st.info("No participant sessions found yet.")
+        else:
+            # Build selection list
+            options = {
+                f"{p['user_id']}  —  currently at: {p['current_stage']}  ({p['session_id']})": p
+                for p in sorted(participants, key=lambda x: x['user_id'])
+            }
+            selected_label = st.selectbox("Select participant session:", list(options.keys()))
+            selected = options[selected_label]
+
+            current_idx = STAGES.index(selected['current_stage']) if selected['current_stage'] in STAGES else 0
+            target_stage = st.selectbox(
+                "Jump to stage:",
+                STAGES,
+                index=current_idx,
+                format_func=lambda s: STAGE_LABELS.get(s, s)
+            )
+
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("✈️ Jump to Stage", use_container_width=True, type="primary"):
+                    session_file = DATA_DIR / "sessions" / selected['file']
+                    try:
+                        with open(session_file, 'r', encoding='utf-8') as f:
+                            session_data = json.load(f)
+                        session_data['current_stage'] = target_stage
+                        if target_stage not in session_data.get('completed_stages', []):
+                            session_data.setdefault('completed_stages', [])
+                        with open(session_file, 'w', encoding='utf-8') as f:
+                            json.dump(session_data, f, indent=2)
+                        st.success(
+                            f"✅ **{selected['user_id']}** moved to "
+                            f"**{STAGE_LABELS.get(target_stage, target_stage)}**. "
+                            "They will see the new stage on their next page load."
+                        )
+                    except Exception as e:
+                        st.error(f"Failed to update session: {e}")
+            with col2:
+                st.markdown(
+                    f"Current: **{STAGE_LABELS.get(selected['current_stage'], selected['current_stage'])}**"
+                )
+
+        st.markdown("---")
+        st.markdown("**How to use for testing:**")
+        st.markdown(
+            "1. Register a test participant (e.g. ID: `test01`) on the main app\n"
+            "2. Come back here and jump them to any stage\n"
+            "3. Return to the main app with that ID via Resume Session to view that stage"
+        )
+
 
 if __name__ == "__main__":
     admin_page()
