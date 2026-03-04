@@ -376,10 +376,14 @@ def render_task_dialogue():
     st.header(f"💬 {task_display_name}")
 
     # ── Task description (always accessible at top) ─────────────────────────
-    task_text = _read_task_text(dialogue.task_name)
+    pdf_b64 = _read_task_pdf_b64(dialogue.task_name)
     with st.expander("📄 Task Description (click to expand / collapse)", expanded=True):
-        if task_text:
-            st.markdown(task_text)
+        if pdf_b64:
+            st.markdown(
+                f'<iframe src="data:application/pdf;base64,{pdf_b64}" '
+                f'width="100%" height="500px" style="border:none;border-radius:6px;"></iframe>',
+                unsafe_allow_html=True
+            )
         else:
             st.info(f"Task: {task_display_name}")
 
@@ -415,8 +419,21 @@ def render_task_dialogue():
         personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
         messages = [{"role": m.role, "content": m.content} for m in dialogue.messages]
 
+        # Extract task text for LLM context (plain text fallback from PDF bytes)
+        task_context = ""
+        try:
+            from PyPDF2 import PdfReader
+            import io, base64
+            raw = _read_task_pdf_b64(dialogue.task_name)
+            if raw:
+                pdf_bytes = base64.b64decode(raw)
+                reader = PdfReader(io.BytesIO(pdf_bytes))
+                task_context = "\n\n".join(p.extract_text() or "" for p in reader.pages).strip()
+        except Exception:
+            task_context = dialogue.task_name.replace(".pdf", "")
+
         with st.spinner("AI Assistant is thinking…"):
-            response = personality.chat(messages)
+            response = personality.chat(messages, task_context=task_context)
 
         agents['dialogue'].record_message(dialogue_id, "assistant", response)
         st.rerun()
