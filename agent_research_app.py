@@ -222,8 +222,10 @@ def render_big5_assessment():
 
     with st.form("assessment_form"):
         responses = {}
+        item_numbers = {}  # id -> display number
 
         for i, item in enumerate(items, 1):
+            item_numbers[item['id']] = i
             responses[item['id']] = st.radio(
                 f"**{i}.** {item['text']}",
                 options=[1, 2, 3, 4, 5],
@@ -239,13 +241,15 @@ def render_big5_assessment():
         if submit:
             unanswered = [k for k, v in responses.items() if v is None]
             if unanswered:
+                nums = sorted(item_numbers[k] for k in unanswered)
+                nums_str = ", ".join(str(n) for n in nums)
                 st.toast(
-                    f"Almost there! Please answer all {len(unanswered)} remaining question(s) before continuing.",
+                    f"Almost there! Please answer question(s): {nums_str}",
                     icon="💬"
                 )
                 st.warning(
-                    f"**Almost there!** It looks like {len(unanswered)} question(s) still need a response. "
-                    "Please scroll through and make sure every item has been rated before submitting."
+                    f"**Almost there!** The following item(s) still need a response: "
+                    f"**{nums_str}**. Please scroll up and rate each one before submitting."
                 )
             else:
                 assessment = agents['assessment'].conduct_assessment(
@@ -458,7 +462,9 @@ def render_post_survey():
         responses = {}
 
         # Likert items — no section headers, no default selection
+        survey_item_numbers = {}  # key -> display number
         for i, (key, q_data) in enumerate(likert_questions.items(), 1):
+            survey_item_numbers[key] = i
             responses[key] = st.radio(
                 f"**{i}.** {q_data['question']}",
                 options=[1, 2, 3, 4, 5, 6, 7],
@@ -485,13 +491,15 @@ def render_post_survey():
             # Validate all Likert items answered
             unanswered = [k for k in likert_questions if responses.get(k) is None]
             if unanswered:
+                nums = sorted(survey_item_numbers[k] for k in unanswered)
+                nums_str = ", ".join(str(n) for n in nums)
                 st.toast(
-                    f"Almost there! Please answer all {len(unanswered)} remaining question(s) before continuing.",
+                    f"Almost there! Please answer question(s): {nums_str}",
                     icon="💬"
                 )
                 st.warning(
-                    f"**Almost there!** It looks like {len(unanswered)} question(s) still need a response. "
-                    "Please scroll through and make sure every item has been rated before submitting."
+                    f"**Almost there!** The following item(s) still need a response: "
+                    f"**{nums_str}**. Please scroll up and rate each one before submitting."
                 )
             else:
                 agents['survey'].conduct_survey(
