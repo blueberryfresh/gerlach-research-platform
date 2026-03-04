@@ -90,6 +90,9 @@ if 'survey_responses' not in st.session_state:
 if 'show_admin' not in st.session_state:
     st.session_state.show_admin = False
 
+if 'show_save_exit' not in st.session_state:
+    st.session_state.show_save_exit = False
+
 
 _STAGE_LABELS = {
     "registration":   "Step 1 of 3 — Questionnaires",
@@ -658,11 +661,21 @@ div[role="radiogroup"] > label > div:nth-child(2) {
             stage_label = _STAGE_LABELS.get(session.current_stage.value, "In progress")
             st.markdown(f"**Participant ID:** `{st.session_state.user_id}`")
             st.markdown(f"**Progress:** {stage_label}")
-            st.info(
-                "Need to stop and return later? "
-                "Simply close this window and use the **Resume Session** tab "
-                f"with your ID **`{st.session_state.user_id}`** to continue where you left off."
-            )
+            st.markdown("---")
+
+            if st.button("💾 Save & Exit", use_container_width=True):
+                st.session_state.show_save_exit = True
+
+            if st.session_state.get("show_save_exit"):
+                st.success(
+                    f"**Your progress has been saved.**\n\n"
+                    f"Your Participant ID is: **{st.session_state.user_id}**\n\n"
+                    "Write this down or take a screenshot. When you are ready to continue, "
+                    "return to this website and use the **Resume Session** tab to pick up where you left off."
+                )
+                if st.button("Close", key="close_save_exit"):
+                    st.session_state.show_save_exit = False
+                    st.rerun()
         else:
             st.info("No active session")
 
