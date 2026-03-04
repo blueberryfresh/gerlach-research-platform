@@ -280,13 +280,44 @@ REQUIRED_TASKS = ["NOBLE INDUSTRIES for Big5.pdf", "Popcorn brain task for Big5.
 
 
 @st.cache_data
-def _read_task_pdf_b64(task_name: str) -> str:
-    """Read PDF as base64 string for inline embedding. Cached per session."""
-    import base64
+def _read_task_content(task_name: str) -> str:
+    """Extract text + tables from PDF using pdfplumber.
+    Tables are rendered as markdown tables; all other text is plain markdown."""
     task_path = TASK_FOLDER / task_name
     if not task_path.exists():
         return ""
-    return base64.b64encode(task_path.read_bytes()).decode()
+    try:
+        import pdfplumber
+        output = []
+        with pdfplumber.open(str(task_path)) as pdf:
+            for page in pdf.pages:
+                tables = page.extract_tables()
+                # Crop away table regions so text extraction doesn't duplicate them
+                cropped = page
+                for table_obj in page.find_tables():
+                    cropped = cropped.outside_bbox(table_obj.bbox)
+                text = cropped.extract_text() or ""
+                if text.strip():
+                    output.append(text.strip())
+                for table in tables:
+                    if not table or not table[0]:
+                        continue
+                    header = [str(c or "").strip() for c in table[0]]
+                    rows   = [[str(c or "").strip() for c in row] for row in table[1:]]
+                    md  = "| " + " | ".join(header) + " |\n"
+                    md += "| " + " | ".join(["---"] * len(header)) + " |\n"
+                    for row in rows:
+                        md += "| " + " | ".join(row) + " |\n"
+                    output.append(md)
+        return "\n\n".join(output)
+    except Exception:
+        # Fallback to plain PyPDF2 extraction
+        try:
+            from PyPDF2 import PdfReader
+            reader = PdfReader(str(task_path))
+            return "\n\n".join(p.extract_text() or "" for p in reader.pages).strip()
+        except Exception:
+            return ""
 
 
 def _get_or_assign(session):
@@ -331,14 +362,10 @@ def render_task_selection():
     st.markdown("Please read the task description carefully before beginning.")
     st.markdown("---")
 
-    # Embed the PDF directly so all original formatting and tables are preserved
-    pdf_b64 = _read_task_pdf_b64(assigned_task)
-    if pdf_b64:
-        st.markdown(
-            f'<iframe src="data:application/pdf;base64,{pdf_b64}" '
-            f'width="100%" height="720px" style="border:none;border-radius:6px;"></iframe>',
-            unsafe_allow_html=True
-        )
+    # Render text normally; tables detected by pdfplumber are formatted as markdown tables
+    task_content = _read_task_content(assigned_task)
+    if task_content:
+        st.markdown(task_content)
     else:
         st.info("Task document loaded. Please refer to any printed materials provided.")
 
@@ -380,14 +407,10 @@ def render_task_dialogue():
     st.header(f"💬 {task_display_name}")
 
     # ── Task description (always accessible at top) ─────────────────────────
-    pdf_b64 = _read_task_pdf_b64(dialogue.task_name)
     with st.expander("📄 Task Description (click to expand / collapse)", expanded=True):
-        if pdf_b64:
-            st.markdown(
-                f'<iframe src="data:application/pdf;base64,{pdf_b64}" '
-                f'width="100%" height="500px" style="border:none;border-radius:6px;"></iframe>',
-                unsafe_allow_html=True
-            )
+        task_content = _read_task_content(dialogue.task_name)
+        if task_content:
+            st.markdown(task_content)
         else:
             st.info(f"Task: {task_display_name}")
 
@@ -423,18 +446,8 @@ def render_task_dialogue():
         personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
         messages = [{"role": m.role, "content": m.content} for m in dialogue.messages]
 
-        # Extract task text for LLM context (plain text fallback from PDF bytes)
-        task_context = ""
-        try:
-            from PyPDF2 import PdfReader
-            import io, base64
-            raw = _read_task_pdf_b64(dialogue.task_name)
-            if raw:
-                pdf_bytes = base64.b64decode(raw)
-                reader = PdfReader(io.BytesIO(pdf_bytes))
-                task_context = "\n\n".join(p.extract_text() or "" for p in reader.pages).strip()
-        except Exception:
-            task_context = dialogue.task_name.replace(".pdf", "")
+        # Reuse cached extraction — already handles tables and plain text
+        task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
 
         with st.spinner("AI Assistant is thinking…"):
             response = personality.chat(messages, task_context=task_context)
