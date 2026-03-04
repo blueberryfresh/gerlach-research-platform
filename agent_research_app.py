@@ -279,8 +279,8 @@ PERSONALITY_LABELS = {
     "reserved": "🤫 Reserved",
 }
 
-REQUIRED_TASKS = ["NOBLE INDUSTRIES for Big5.pdf", "Popcorn brain task for Big5.pdf"]
-POPCORN_TASK = "Popcorn brain task for Big5.pdf"
+REQUIRED_TASKS = ["NOBLE INDUSTRIES for Big5.pdf", "Popcorn Brain Task for Big5-rev2.pdf"]
+POPCORN_TASK = "Popcorn Brain Task for Big5-rev2.pdf"
 
 
 def _format_task_content(task_name: str, raw: str) -> str:
