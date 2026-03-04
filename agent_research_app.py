@@ -280,6 +280,54 @@ PERSONALITY_LABELS = {
 }
 
 REQUIRED_TASKS = ["NOBLE INDUSTRIES for Big5.pdf", "Popcorn brain task for Big5.pdf"]
+POPCORN_TASK = "Popcorn brain task for Big5.pdf"
+
+
+def _format_task_content(task_name: str, raw: str) -> str:
+    """Apply display formatting to extracted task text.
+    For Popcorn Brain: bold key labels, enforce paragraph breaks, larger font wrapper."""
+    import re
+    if not raw:
+        return raw
+
+    if task_name == POPCORN_TASK:
+        # Normalise whitespace
+        text = re.sub(r'\r\n|\r', '\n', raw)
+        text = re.sub(r'\n{3,}', '\n\n', text)
+
+        # "Task Description:" → new paragraph, bold label
+        text = re.sub(
+            r'(?m)^[ \t]*(Task Description:)',
+            r'\n\n**Task Description:**',
+            text
+        )
+        text = re.sub(
+            r'(Task Description:)(?!\*\*)',  # catch inline occurrences too
+            r'**Task Description:**',
+            text
+        )
+
+        # "Question:" → new paragraph, bold label
+        text = re.sub(
+            r'(?m)^[ \t]*(Question:)',
+            r'\n\n**Question:**',
+            text
+        )
+        text = re.sub(
+            r'(Question:)(?!\*\*)',
+            r'**Question:**',
+            text
+        )
+
+        # Wrap in a larger-font div for readability
+        text = text.strip()
+        return (
+            "<div style='font-size:1.1rem;line-height:1.8;'>\n\n"
+            + text
+            + "\n\n</div>"
+        )
+
+    return raw
 
 
 @st.cache_data
@@ -360,15 +408,15 @@ def render_task_selection():
         st.error("Could not assign a task. Please contact the researcher.")
         return
 
-    task_display_name = assigned_task.replace(".pdf", "")
-    st.header(f"📄 Your Task: {task_display_name}")
+    st.header("📄 Your Assigned Task")
     st.markdown("Please read the task description carefully before beginning.")
     st.markdown("---")
 
     # Render text normally; tables detected by pdfplumber are formatted as markdown tables
     task_content = _read_task_content(assigned_task)
-    if task_content:
-        st.markdown(task_content)
+    formatted   = _format_task_content(assigned_task, task_content)
+    if formatted:
+        st.markdown(formatted, unsafe_allow_html=True)
     else:
         st.info("Task document loaded. Please refer to any printed materials provided.")
 
@@ -406,16 +454,16 @@ def render_task_dialogue():
         st.error("Dialogue not found")
         return
 
-    task_display_name = dialogue.task_name.replace(".pdf", "")
-    st.header(f"💬 {task_display_name}")
+    st.header("💬 Task Collaboration")
 
     # ── Task description (always accessible at top) ─────────────────────────
     with st.expander("📄 Task Description (click to expand / collapse)", expanded=True):
         task_content = _read_task_content(dialogue.task_name)
-        if task_content:
-            st.markdown(task_content)
+        formatted    = _format_task_content(dialogue.task_name, task_content)
+        if formatted:
+            st.markdown(formatted, unsafe_allow_html=True)
         else:
-            st.info(f"Task: {task_display_name}")
+            st.info("Task description not available.")
 
     st.markdown("---")
 
