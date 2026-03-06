@@ -542,6 +542,7 @@ def render_task_dialogue():
 
     # ── Complete Task button (below conversation) ────────────────────────────
     st.markdown("---")
+    st.warning("⚠️ **ONLY click the button below when you and your LLM Partner have fully completed the task!**")
     col1, col2 = st.columns([3, 1])
     with col1:
         st.metric("Messages exchanged", dialogue.total_messages)
