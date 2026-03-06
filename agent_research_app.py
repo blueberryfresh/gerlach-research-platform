@@ -778,6 +778,14 @@ div[role="radiogroup"] > label > div:nth-child(2) {
             )
             st.markdown("---")
 
+            if st.button("🔄 Reload Page", use_container_width=True, key="reload_page"):
+                fresh = agents['supervisor'].find_active_session_by_user(st.session_state.user_id)
+                if fresh:
+                    st.session_state.current_session = fresh
+                    if fresh.dialogue_records:
+                        st.session_state.current_dialogue_id = fresh.dialogue_records[-1]
+                st.rerun()
+
             if st.button("💾 Save & Exit", use_container_width=True):
                 st.session_state.show_save_exit = True
 
