@@ -515,7 +515,7 @@ def render_task_dialogue():
                 "invite me to share my initial thoughts or how I would like to proceed."
             )
         }]
-        with st.spinner("AI Assistant is preparing…"):
+        with st.spinner("LLM Partner is preparing…"):
             welcome = personality.chat(welcome_prompt, task_context=task_context)
         agents['dialogue'].record_message(dialogue_id, "assistant", welcome)
         st.rerun()
@@ -555,7 +555,7 @@ def render_task_dialogue():
             st.rerun()
 
     # ── Chat input (Streamlit renders this sticky at viewport bottom) ────────
-    user_input = st.chat_input("Type your message to the AI assistant…")
+    user_input = st.chat_input("Type your message to the LLM Partner…")
 
     if user_input:
         agents['dialogue'].record_message(dialogue_id, "user", user_input)
@@ -566,7 +566,7 @@ def render_task_dialogue():
         # Reuse cached extraction — already handles tables and plain text
         task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
 
-        with st.spinner("AI Assistant is thinking…"):
+        with st.spinner("LLM Partner is thinking…"):
             response = personality.chat(messages, task_context=task_context)
 
         agents['dialogue'].record_message(dialogue_id, "assistant", response)
@@ -574,8 +574,8 @@ def render_task_dialogue():
 
 
 def render_post_survey():
-    """Stage 5: Post-Experiment Survey"""
-    st.header("Post-Experiment Survey")
+    """Stage 5: Post-Task Survey"""
+    st.header("Post-Task Survey")
 
     st.markdown(
         "Please read each statement carefully and select the response that best reflects your experience. "
