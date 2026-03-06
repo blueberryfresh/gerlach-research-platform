@@ -196,6 +196,16 @@ class PostExpSurveyAgent:
             "type": "text",
             "placeholder": "Describe the LLM's communication skill impact..."
         },
+        "q38": {
+            "question": "What is your gender?",
+            "type": "text",
+            "placeholder": "e.g., Male, Female, Non-binary, Prefer not to say..."
+        },
+        "q39": {
+            "question": "What is your major?",
+            "type": "text",
+            "placeholder": "e.g., Computer Science, Psychology, Business..."
+        },
     }
     
     def __init__(self, data_dir: Path):
