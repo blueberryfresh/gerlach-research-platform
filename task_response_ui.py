@@ -8,25 +8,10 @@ from pathlib import Path
 
 
 def render_task_response(agents, session, dialogue_id):
-    """Route to appropriate task response interface based on task"""
-    dialogue = agents['dialogue'].get_dialogue(dialogue_id)
-    
-    if not dialogue:
-        st.error("Dialogue not found")
-        return
-    
-    task_name = dialogue.task_name.lower()
-    
-    if "noble" in task_name:
-        render_noble_industries(agents, session, dialogue)
-    elif "popcorn" in task_name:
-        render_popcorn_brain(agents, session, dialogue)
-    else:
-        st.warning(f"No task-specific response form for: {dialogue.task_name}")
-        # Skip to survey
-        from agents import WorkflowStage
-        agents['supervisor'].advance_stage(session.session_id, WorkflowStage.POST_SURVEY)
-        st.rerun()
+    """Advance immediately to POST_SURVEY — task assessment is admin-only."""
+    from agents import WorkflowStage
+    agents['supervisor'].advance_stage(session.session_id, WorkflowStage.POST_SURVEY)
+    st.rerun()
 
 
 def render_noble_industries(agents, session, dialogue):
