@@ -150,8 +150,8 @@ def render_registration():
                         # Already has a session — silently resume so they don't create a duplicate
                         st.session_state.user_id = user_id.strip()
                         st.session_state.current_session = existing
-                        if existing.dialogue_ids:
-                            st.session_state.current_dialogue_id = existing.dialogue_ids[-1]
+                        if existing.dialogue_records:
+                            st.session_state.current_dialogue_id = existing.dialogue_records[-1]
                         st.rerun()
                     else:
                         session = agents['supervisor'].create_user_session(
@@ -187,8 +187,8 @@ def render_registration():
                         stage_label = _STAGE_LABELS.get(existing.current_stage.value, "In progress")
                         st.session_state.user_id = resume_id.strip()
                         st.session_state.current_session = existing
-                        if existing.dialogue_ids:
-                            st.session_state.current_dialogue_id = existing.dialogue_ids[-1]
+                        if existing.dialogue_records:
+                            st.session_state.current_dialogue_id = existing.dialogue_records[-1]
                         st.success(f"Welcome back! Resuming from: **{stage_label}**")
                         st.rerun()
                     else:
