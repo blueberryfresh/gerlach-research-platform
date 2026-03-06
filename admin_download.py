@@ -96,31 +96,66 @@ def create_zip_all_data():
     zip_buffer.seek(0)
     return zip_buffer
 
+def _descriptive_name(folder: str, file_path: Path, user_id: str) -> str:
+    """Return a human-readable filename for a participant data file."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception:
+        return file_path.name
+
+    suffix = file_path.suffix  # .json, .md, .html
+
+    if folder == 'sessions':
+        date = data.get('started_at', '')[:10]
+        stage = data.get('current_stage', 'unknown')
+        return f"SESSION_{user_id}_{date}_{stage}{suffix}"
+
+    if folder == 'assessments':
+        gerlach = data.get('gerlach_type', 'unknown').replace(' ', '_')
+        return f"BIG5_ASSESSMENT_{user_id}_{gerlach}{suffix}"
+
+    if folder == 'dialogues':
+        task = data.get('task_name', 'unknown')
+        task_short = (task.lower()
+                      .replace('noble industries for big5.pdf', 'noble_industries')
+                      .replace('popcorn brain task for big5-rev2.pdf', 'popcorn_brain')
+                      .replace('.pdf', '')
+                      .replace(' ', '_')[:30])
+        personality = data.get('llm_personality', 'unknown').replace(' ', '_')
+        return f"DIALOGUE_{user_id}_{task_short}_{personality}_llm{suffix}"
+
+    if folder == 'surveys':
+        return f"POST_TASK_SURVEY_{user_id}{suffix}"
+
+    if folder == 'task_responses':
+        return f"TASK_RESPONSE_{user_id}_{file_path.stem[-6:]}{suffix}"
+
+    if folder == 'reports':
+        return f"REPORT_{user_id}{suffix}"
+
+    return file_path.name
+
+
 def create_zip_participant_data(user_id):
-    """Create ZIP file for a specific participant"""
+    """Create ZIP file for a specific participant with descriptive filenames."""
     data_dir = DATA_DIR
 
     if not data_dir.exists():
         return None
-    
+
     zip_buffer = io.BytesIO()
-    
+
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
         for folder in ['sessions', 'assessments', 'dialogues', 'task_responses', 'surveys', 'reports']:
             folder_path = data_dir / folder
-            if folder_path.exists():
-                for file_path in folder_path.rglob(f'*{user_id}*.json'):
-                    arcname = file_path.relative_to(data_dir)
+            if not folder_path.exists():
+                continue
+            for file_path in folder_path.rglob(f'*{user_id}*'):
+                if file_path.suffix in ('.json', '.md', '.html'):
+                    arcname = _descriptive_name(folder, file_path, user_id)
                     zip_file.write(file_path, arcname)
-                
-                for file_path in folder_path.rglob(f'*{user_id}*.md'):
-                    arcname = file_path.relative_to(data_dir)
-                    zip_file.write(file_path, arcname)
-                
-                for file_path in folder_path.rglob(f'*{user_id}*.html'):
-                    arcname = file_path.relative_to(data_dir)
-                    zip_file.write(file_path, arcname)
-    
+
     zip_buffer.seek(0)
     return zip_buffer
 
