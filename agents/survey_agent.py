@@ -196,11 +196,6 @@ class PostExpSurveyAgent:
             "type": "text",
             "placeholder": "Describe the LLM's communication skill impact..."
         },
-        "q37": {
-            "question": "Besides the LLM's ability to contribute to the task, how did the voice gender play a role in your collaboration with the LLM? Did the LLM's voice being male or female influence your collaboration with your partner? If the voice were the opposite sex, would it have made any difference to the collaboration and its output?",
-            "type": "text",
-            "placeholder": "Describe gender/voice impact..."
-        }
     }
     
     def __init__(self, data_dir: Path):
