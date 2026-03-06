@@ -18,7 +18,7 @@ class PostExpSurveyAgent:
     after users complete task-solving dialogues
     """
     
-    # LLM-Human Collaboration Post Session Questionnaire (37 questions)
+    # LLM-Human Collaboration Post Session Questionnaire (rev4 — 36 questions; q2 dropped)
     # Likert scale questions (1-7): 1=Strongly Disagree, 7=Strongly Agree
     SURVEY_QUESTIONS = {
         "q1": {
@@ -26,13 +26,8 @@ class PostExpSurveyAgent:
             "type": "likert",
             "scale": (1, 7)
         },
-        "q2": {
-            "question": "I believe that our work is readable and understandable for others.",
-            "type": "likert",
-            "scale": (1, 7)
-        },
         "q3": {
-            "question": "I believe that our output has effectively answered the given problem.",
+            "question": "I believe that our output has effectively solved the given task.",
             "type": "likert",
             "scale": (1, 7)
         },
@@ -42,167 +37,167 @@ class PostExpSurveyAgent:
             "scale": (1, 7)
         },
         "q5": {
-            "question": "In LLM-Human collaboration, LLM and I disagreed frequently in reaching a solution.",
+            "question": "In the LLM-Human collaboration, the LLM and I disagreed frequently in reaching a solution.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q6": {
-            "question": "In LLM-Human collaboration, I believe that I had an easier time reaching the solutions.",
+            "question": "In the LLM-Human collaboration, I believe that I had an easier time reaching the solutions.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q7": {
-            "question": "In LLM-Human collaboration I believe that we had much longer time reaching the solutions.",
+            "question": "In the LLM-Human collaboration, I believe that we had a much longer time reaching the solutions.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q8": {
-            "question": "In LLM-Human collaboration, I did not like LLM's suggestion or view, but I compromised to do (or follow) LLM's way.",
+            "question": "In the LLM-Human collaboration, I did not like the LLM's suggestion or view, but I compromised to do (or follow) the LLM's way.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q9": {
-            "question": "In LLM-Human collaboration, the feeling of trusting LLM grew stronger as the session went on.",
+            "question": "In the LLM-Human collaboration, the feeling of trusting the LLM grew stronger as the session went on.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q10": {
-            "question": "LLM showed things that I did not know about.",
+            "question": "The LLM showed things that I did not know about.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q11": {
-            "question": "LLM showed compassion towards me.",
+            "question": "The LLM showed compassion towards me.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q12": {
-            "question": "LLM showed no emotion and only dealt facts.",
+            "question": "The LLM showed no emotion and only dealt with facts.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q13": {
-            "question": "In LLM-Human collaboration, I really enjoyed my partner's partnership (willing to work as a team, open mind, etc).",
+            "question": "In the LLM-Human collaboration, I really enjoyed my LLM partner's partnership (willing to work as a team, open-minded, etc.).",
             "type": "likert",
             "scale": (1, 7)
         },
         "q14": {
-            "question": "In LLM-Human collaboration, my partner insisted on doing things his way and/or did not collaborate.",
+            "question": "In the LLM-Human collaboration, my partner insisted on doing things his way and/or did not collaborate.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q15": {
-            "question": "In LLM-Human collaboration, I was NOT able to fully exercise my knowledgeable skill.",
+            "question": "In the LLM-Human collaboration, I was NOT able to fully exercise my knowledge and skills.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q16": {
-            "question": "In LLM-Human collaboration, I believe that I'm a compatible partner to LLM.",
+            "question": "In the LLM-Human collaboration, I believe that I am a compatible partner to the LLM.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q17": {
-            "question": "In LLM-Human collaboration, it was my politeness and etiquette that got through the LLM-Human collaboration sessions, NOT my true self (personality).",
+            "question": "In the LLM-Human collaboration, it was my politeness and etiquette that got me through the collaboration sessions, NOT my true self (personality).",
             "type": "likert",
             "scale": (1, 7)
         },
         "q18": {
-            "question": "In LLM-Human collaboration, I believe that I have a compatible personality to LLM.",
+            "question": "In the LLM-Human collaboration, I believe that I have a compatible personality with the LLM.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q19": {
-            "question": "In LLM-Human collaboration, I did NOT reveal my true self, personality during the whole session.",
+            "question": "In the LLM-Human collaboration, I did NOT reveal my true self or personality during the whole session.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q20": {
-            "question": "In LLM-Human collaboration, LLM was thoughtful and forgiving with my mistakes.",
+            "question": "In the LLM-Human collaboration, the LLM was thoughtful and forgiving with my mistakes.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q21": {
-            "question": "In LLM-Human collaboration, there were times when I was withdrawn (or maybe upset) because of the disagreements from the partner.",
+            "question": "In the LLM-Human collaboration, there were times when I was withdrawn (or maybe upset) because of disagreements with the partner.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q22": {
-            "question": "I think LLM-Human collaboration is a form of cheating as LLM-Human collaboration takes away from one to truly learn on his or her own.",
+            "question": "I think the LLM-Human collaboration is a form of cheating as it takes away from one's ability to truly learn on his or her own.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q23": {
-            "question": "I don't think I can achieve a higher productivity next time if I'm paired with LLM again.",
+            "question": "I don't think I can achieve higher productivity next time if I am paired with the LLM again.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q24": {
-            "question": "In LLM-Human collaboration, LLM described his or her point very well and I was able to fully understand.",
+            "question": "In the LLM-Human collaboration, the LLM described his or her point very well and I was able to fully understand.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q25": {
-            "question": "In LLM-Human collaboration, LLM did not express nor communicated much (too quiet) which made LLM-Human collaboration very difficult.",
+            "question": "In the LLM-Human collaboration, the LLM did not express nor communicate much (too quiet), which made the collaboration very difficult.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q26": {
-            "question": "In LLM-Human collaboration, LLM's message delivery was unclear which made LLM-Human collaboration very difficult.",
+            "question": "In the LLM-Human collaboration, the LLM's message delivery was unclear, which made the collaboration very difficult.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q27": {
-            "question": "In LLM-Human collaboration, LLM's active communication to me allowed me to be more active in expressing my views as well.",
+            "question": "In the LLM-Human collaboration, the LLM's active communication with me allowed me to be more active in expressing my views as well.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q28": {
-            "question": "In LLM-Human collaboration, LLM's voice tone was loud and clear which helped our communication.",
+            "question": "In the LLM-Human collaboration, the LLM's voice tone was loud and clear, which helped our communication.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q29": {
-            "question": "In LLM-Human collaboration, the gender of LLM's voice did not influence my LLM-Human collaboration experience at all.",
+            "question": "In the LLM-Human collaboration, the gender of the LLM's voice did not influence my collaboration experience at all.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q30": {
-            "question": "In LLM-Human collaboration, the fact that my partner was male voice (or female voice), it allowed me to focus more on the problems.",
+            "question": "In the LLM-Human collaboration, the fact that my partner had a male voice (or female voice) allowed me to focus more on the problems.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q31": {
-            "question": "In LLM-Human collaboration, I think the partner's gender can be an issue.",
+            "question": "In the LLM-Human collaboration, I think the partner's gender can be an issue.",
             "type": "likert",
             "scale": (1, 7)
         },
         "q32": {
-            "question": "Briefly describe any conflicts or negative impacts from LLM that you have experienced during the collaboration which you think it influenced or caused the collaboration session and its productivity.",
+            "question": "Briefly describe any conflicts or negative impacts from the LLM that you experienced during the collaboration, which you think influenced or affected the collaboration session and its productivity.",
             "type": "text",
             "placeholder": "Describe any conflicts or negative impacts..."
         },
         "q33": {
-            "question": "Describe any positive impacts from LLM that you have experienced during the collaboration which you think it influenced or caused the collaboration productivity.",
+            "question": "Describe any positive impacts from the LLM that you experienced during the collaboration, which you think influenced or contributed to the collaboration productivity.",
             "type": "text",
             "placeholder": "Describe positive impacts..."
         },
         "q34": {
-            "question": "Discuss the compatibility (personality, communication or others) of you and LLM. If good, why? If not, why not? Do you think you can achieve a high productivity with LLM again?",
+            "question": "Discuss the compatibility (personality, communication, or other aspects) between you and the LLM. If it was good, why? If not, why not? Do you think you can achieve high productivity with the LLM again?",
             "type": "text",
             "placeholder": "Discuss compatibility..."
         },
         "q35": {
-            "question": "Besides LLM's ability to contribute to the task, how did the LLM's personality played a role in your and LLM's collaboration? Was the personality compatible or NOT? Describe.",
+            "question": "Besides the LLM's ability to contribute to the task, how did the LLM's personality play a role in your collaboration with the LLM? Was the personality compatible or not? Describe.",
             "type": "text",
-            "placeholder": "Describe LLM's personality role..."
+            "placeholder": "Describe the LLM's personality role..."
         },
         "q36": {
-            "question": "Besides LLM's ability to contribute to the task, how did the LLM's communication skill played a role in your and LLM's collaboration? The level of communication skill that LLM exhibited, did that bring on a positive (or negative) feeling and impact to your collaboration with LLM? Describe.",
+            "question": "Besides the LLM's ability to contribute to the task, how did the LLM's communication skills play a role in your collaboration? Did the level of communication skill that the LLM exhibited bring a positive (or negative) feeling and impact to your collaboration with the LLM? Describe.",
             "type": "text",
-            "placeholder": "Describe LLM's communication skill impact..."
+            "placeholder": "Describe the LLM's communication skill impact..."
         },
         "q37": {
-            "question": "Besides LLM's ability to contribute to the task, how did the voice of gender played a role in your and LLM's collaboration? LLM's voice being male or female, did it influence your collaboration with your partner? If the voice was opposite sex, would it made any difference to the collaboration and its output?",
+            "question": "Besides the LLM's ability to contribute to the task, how did the voice gender play a role in your collaboration with the LLM? Did the LLM's voice being male or female influence your collaboration with your partner? If the voice were the opposite sex, would it have made any difference to the collaboration and its output?",
             "type": "text",
             "placeholder": "Describe gender/voice impact..."
         }
