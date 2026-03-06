@@ -503,6 +503,23 @@ def render_task_dialogue():
         st.error("Dialogue not found")
         return
 
+    # Generate a one-time welcome message when the dialogue is brand new
+    if len(dialogue.messages) == 0 and agents['llm_ready']:
+        personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
+        task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
+        welcome_prompt = [{
+            "role": "user",
+            "content": (
+                "Please open our collaboration with a brief, friendly welcome message. "
+                "Acknowledge that I have just finished reading the task description and "
+                "invite me to share my initial thoughts or how I would like to proceed."
+            )
+        }]
+        with st.spinner("AI Assistant is preparing…"):
+            welcome = personality.chat(welcome_prompt, task_context=task_context)
+        agents['dialogue'].record_message(dialogue_id, "assistant", welcome)
+        st.rerun()
+
     st.header("💬 Task Collaboration")
 
     # ── Task description (always accessible at top) ─────────────────────────
