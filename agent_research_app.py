@@ -284,48 +284,97 @@ POPCORN_TASK = "Popcorn Brain Task for Big5-rev2.pdf"
 
 
 def _format_task_content(task_name: str, raw: str) -> str:
-    """Apply display formatting to extracted task text.
-    For Popcorn Brain: bold key labels, enforce paragraph breaks, larger font wrapper."""
-    import re
+    """Return hardcoded, well-formatted markdown for each task."""
     if not raw:
         return raw
 
     if task_name == POPCORN_TASK:
-        # Normalise whitespace
-        text = re.sub(r'\r\n|\r', '\n', raw)
-        text = re.sub(r'\n{3,}', '\n\n', text)
+        return """\
+Thank you for your participation. Please read the task description below carefully. You may want to read it \
+twice to be clear. After that, start engaging a conversation with the LLM in discussing and collaborating for \
+a most optimal solution. After you both have come to an agreement, click the 'complete' button on the bottom \
+of the screen to finish the session. Your conversation will be saved for the researchers.
 
-        # "Task Description:" → new paragraph, bold label
-        text = re.sub(
-            r'(?m)^[ \t]*(Task Description:)',
-            r'\n\n**Task Description:**',
-            text
-        )
-        text = re.sub(
-            r'(Task Description:)(?!\*\*)',  # catch inline occurrences too
-            r'**Task Description:**',
-            text
-        )
+Please put in your best effort to generate a genuinely good and effective solution.
 
-        # "Question:" → new paragraph, bold label
-        text = re.sub(
-            r'(?m)^[ \t]*(Question:)',
-            r'\n\n**Question:**',
-            text
-        )
-        text = re.sub(
-            r'(Question:)(?!\*\*)',
-            r'**Question:**',
-            text
-        )
+---
 
-        # Wrap in a larger-font div for readability
-        text = text.strip()
-        return (
-            "<div style='font-size:1.1rem;line-height:1.8;'>\n\n"
-            + text
-            + "\n\n</div>"
-        )
+### Task Description
+
+Fresno unified school district superintendent, Mr. Johnson is mulling over a new district-wide policy that will address the student-friendly and effective learning environment by utilizing digital technology, specifically AI-based applications and tools. The state governor's office is pushing for "smart classroom" initiative where the governor believes that it will strengthen the student scholastic achievement.
+
+One of the initiative plans is to implement smart technologies such as AI-applications and devices in K-12 classroom. This includes replacing paperback textbook with digital device, interactive AI-based workbooks. The benefits of using AI in place of traditional materials are: 1) student can access dynamic 3D hyper-text, -image, -model, and moving images for better viewing and understanding, 2) student can interact with instructor and other students simultaneously for in-class group collaboration or for homework assignments, 3) it allows student to cover more materials and access more in-depth than the traditional approach.
+
+On the other side, Parent-Teacher Organization (PTO) is raising a substantial concern about down side — *growing memory loss by depending too much on digital technologies' data storage service*. This syndrome speaks about how a human brain gradually lose its memory function and capacity as we continue to rely on digital devices in storing and retrieving much of our information. One of the recommendations is to use less of AI-based digital devices and technologies to balance the habitual dependency. The PTO is asking a more appropriate, implementable, and effective use of AI tools in the light of this concern.
+
+Under these circumstances, you and your LLM are asked to work on a master plan to address this dilemma and find ways to enhance the student learning without sacrificing student's memory. Some questions to think about: What are some of creative ideas? Are the ideas realistic? With an idea, what are the action items? How do you satisfy the student's wish to use more AI but addressing the parents' concern? What is the teacher's role here? Should Math, Science, and English courses be different in the use of the AI devices? How? What about the school policies?
+"""
+
+    elif task_name == "NOBLE INDUSTRIES for Big5.pdf":
+        return """\
+Thank you for your participation. Please read the task description below carefully. You may want to read it \
+twice to be clear. After that, start engaging a conversation with the LLM in discussing and collaborating for \
+a most optimal solution. After you both have come to an agreement, click the 'complete' button on the bottom \
+of the screen to finish the session. Your conversation will be saved for the researchers. Please put in your \
+best effort to generate a genuinely good and effective solution.
+
+---
+
+### Task Description
+
+Noble Industries is a mid-sized, diversified manufacturing firm with corporate headquarters located in Columbus, Ohio. The company was founded in 1958 and has experienced steady and continuous growth for most of its forty-year history. Eight manufacturing facilities are located in different parts of the United States and each plant employs approximately 250 people. Gross revenues for Noble Industries in 1997 were $105 million.
+
+The Information Systems Division (ISD) at Noble Industries is functionally distributed throughout the organization. Each plant is responsible for developing and supporting its own local IS operations (for example, ordering, production scheduling, quality assurance, decision support, etc.). All corporate-wide systems (human resources, sales forecasting, research, executive information, etc.) are managed from the central Information Systems Division at corporate headquarters. A total of 150 people are employed in the Information Systems Division (ISD).
+
+After graduating from college in 1988 you were hired as a junior programmer at the Columbus, Ohio site. Five years later you were promoted to the position of systems analyst. Now you are a senior systems analyst in ISD. Your group is responsible for application development and software support for the Research and Development Division (RDD). There are two systems analysts, four applications programmers, and 2 clerical support staff who report directly to you.
+
+This morning, you and the other senior systems analysts at corporate headquarters met with Bob Thompson, Vice President for Information Systems. He explained, "At yesterday's Executive Management meeting it was announced that some of our durable goods customers have found new suppliers. Based on the loss in sales, our V.P. for Finance has projected a 3-6% decline in gross revenue this year. The CEO said that unless sales increase very soon we will have to make staff reductions. All Division Vice Presidents have been asked to develop a preliminary list of people who would be laid off. For ISD, at least one and perhaps as many as ten staff members could be terminated. The final decision will be made next week."
+
+Bob then distributed envelopes marked "Confidential". He said, "In each envelope you will find profile information on ten information systems employees. I want you to take the envelopes back to your office, read the profile and supervisor's comments, then rank the employees in the order that you think they should be laid off. Also write down the reasons for your ranking. The employees' real names don't appear on the profile page because I don't want you to have to make a decision about someone you know. As these are all good employees who have been performing well, management felt it wanted a rating by an impartial group of technical peers as input to their final decision. Use your best judgement. Then I want you to get together as a group later on today, discuss your individual rankings, and submit a final ranking and the reasons for the ranking to me by the end of the day."
+
+Bob concluded the meeting by saying, "I understand this is not an easy task, but given the current situation we don't have any other choice." At that point, you and the other senior systems analysts went back to your offices to work on the ranking assignment.
+
+---
+
+### Employee Profile
+
+| Name | Age | Title | Years with Co. | Education (highest degree) | School or College | Marital Status | Number of Dependents |
+|------|:---:|-------|:--------------:|:--------------------------:|-------------------|:--------------:|:--------------------:|
+| Barbara | 27 | Senior Systems Analyst | 2 | MBA | Stanford Univ. | Single | 0 |
+| Chris | 35 | Systems Analyst | 10 | BS - MIS | U. of Oklahoma | Married | 4 |
+| Fred | 61 | Systems Programmer | 27 | DP School | DeVry Tech. | Married | 1 |
+| Harry | 27 | Applications Programmer | 4 | BS - CIS | Univ. of Bombay | Single | 3 |
+| Joanne | 46 | Senior Systems Analyst | 15 | MS - MIS | Ohio State Univ. | Married | 2 |
+| Lois | 54 | Database Administrator | 22 | AAS - DP | Miami Dade CC | Widowed | 0 |
+| Phil | 26 | Systems Analyst | 3 | BS - CIS | Natl. Taiwan Univ. | Single | 1 |
+| Sharon | 36 | Clerical | 12 | High Sch. | Harrison H.S. | Married | 6 |
+| Susan | 51 | Applications Programmer | 9 | BS - CIS | Texas A&M Univ. | Divorced | 3 |
+| Tom | 47 | Senior Systems Analyst | 18 | BS - Mgmt. | Purdue Univ. | Divorced | 4 |
+
+---
+
+### Supervisors' Comments
+
+**Barbara:** "Barbara is very ambitious and always asks for the most challenging assignments. She believes that hard work should be recognized and rewarded. For example, at both annual performance evaluations Barbara has wanted to know when she will be considered for a promotion. She defines success in terms of position and salary. Barbara is very competitive and I suspect that she will move up in the management ranks. My only concern is that sometimes she can be too assertive."
+
+**Chris:** "Of all the people in my department, Chris responds the quickest when I give him an assignment and he never asks why I want something done. Chris respects authority and understands that everyone needs to know their place in the organizational hierarchy. He doesn't mind bureaucracy because he knows it improves efficiency. Maybe that's why Chris enjoyed being in the army for eight years."
+
+**Fred:** "Fred has been with us for a long time. He enjoys his work and is grateful for the job security he's had here all these years. Fred gets along with everyone and gets a lot of satisfaction out of helping others, especially some of the newer employees when they have questions. He recognizes that it's important for people who work together to agree on things. Fred doesn't like controversy, so he is willing to compromise when others disagree with him."
+
+**Harry:** "Harry is the most technically competent guy in my department. He reads every technical report he can get his hands on. However, Harry likes doing things his own way and prefers to work alone. In this way, Harry believes that it will be easier for me, his supervisor, to reward him for the work he does without anyone else getting any credit. His priorities are very clear, he puts himself and his family above everything else in his life."
+
+**Joanne:** "Joanne has excellent organizational skills. She understands that we need to have rules and the rules need to be followed. Joanne is the department's quality assurance leader (QAL) because she believes that order and structure are necessary for productivity. She doesn't take any unnecessary risks, and thoroughly researches something before making a recommendation to me."
+
+**Lois:** "Lois is a real team player. She really enjoys working with others and always puts the group's interests ahead of her own. In fact, when the new database conversion was completed she suggested that the whole group be recognized for the achievement even though Lois did most of the work. I know that community service is also important to Lois. She is a volunteer at the local shelter for the homeless."
+
+**Phil:** "Although he's only twenty-six years old, Phil tends to live his life as if he were much older. He likes to study history and the way people lived in the past. Last year when Phil's mother became ill he moved back home to take care of her. Phil has a great respect for other people and will defend them when they are being criticized, whether the criticism is justified or not."
+
+**Sharon:** "Sharon is very dedicated. She comes to work early, usually stays late, and always completes every assignment no matter how long it takes. Sharon places a great deal of emphasis on her relationships with others. Her long-term goal is to retire in Florida, so she tries to save as much money as she can."
+
+**Susan:** "I have known Susan for about seven years, ever since she started working here. She gets her work done and thinks that everyone should do their fair share. In fact, Susan once told an assistant plant supervisor who was visiting our plant that he should try doing her job for a day. I give Susan a lot of credit, she speaks her mind and doesn't care if you're the CEO or the mail room clerk. To her, no one is any better than anybody else."
+
+**Tom:** "Tom is always the first to try something new. It doesn't make any difference whether it's a radio station, a place to vacation, or a style of clothes. Tom does things his own way and he's not afraid to break the rules. With me, Tom is the same way. So I generally give him the assignments that have a big risk, but potentially a big payoff."
+"""
 
     return raw
 
