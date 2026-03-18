@@ -333,7 +333,7 @@ def _get_or_assign(session):
 
 
 def render_task_selection():
-    """Stage 3: Show assigned task description for participant to read."""
+    """Stage 3: Silently assign task + create dialogue, then advance to TASK_DIALOGUE."""
     session = st.session_state.current_session
 
     # Validate task files
@@ -351,40 +351,25 @@ def render_task_selection():
         st.error(T["task_sel_err_assign"])
         return
 
-    st.header(T["task_sel_header"])
-    st.markdown(T["task_sel_subtitle"])
-    st.markdown("---")
+    if not agents['llm_ready']:
+        st.error(T["task_sel_err_no_llm"])
+        return
 
-    # Render text normally; tables detected by pdfplumber are formatted as markdown tables
-    task_content = _read_task_content(assigned_task)
-    formatted   = _format_task_content(assigned_task, task_content)
-    if formatted:
-        st.markdown(formatted, unsafe_allow_html=True)
-    else:
-        st.info(T["task_sel_no_content"])
+    dialogue = agents['dialogue'].start_dialogue(
+        user_id=st.session_state.user_id,
+        session_id=session.session_id,
+        task_name=assigned_task,
+        llm_personality=assigned_personality
+    )
 
-    st.markdown("---")
-    st.info(T["task_sel_begin_info"])
+    st.session_state.current_dialogue_id = dialogue.dialogue_id
+    st.session_state.current_messages = []
 
-    if st.button(T["task_sel_begin_btn"], use_container_width=True, type="primary"):
-        if not agents['llm_ready']:
-            st.error(T["task_sel_err_no_llm"])
-        else:
-            dialogue = agents['dialogue'].start_dialogue(
-                user_id=st.session_state.user_id,
-                session_id=session.session_id,
-                task_name=assigned_task,
-                llm_personality=assigned_personality
-            )
+    session.dialogue_records.append(dialogue.dialogue_id)
+    session.save(DATA_DIR)
 
-            st.session_state.current_dialogue_id = dialogue.dialogue_id
-            st.session_state.current_messages = []
-
-            session.dialogue_records.append(dialogue.dialogue_id)
-            session.save(DATA_DIR)
-
-            agents['supervisor'].advance_stage(session.session_id, WorkflowStage.TASK_DIALOGUE)
-            st.rerun()
+    agents['supervisor'].advance_stage(session.session_id, WorkflowStage.TASK_DIALOGUE)
+    st.rerun()
 
 
 def render_task_dialogue():

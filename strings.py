@@ -145,17 +145,17 @@ EN = {
 
 **Example Dialogue Flow:**
 
-> ⭐ **AI:** Hello! I'm excited to help you with this task. Shall we start by reviewing the requirements?
->
-> 👤 **You:** Yes, that sounds good. I think the main goal is to evaluate the candidates based on their experience and cultural fit.
->
-> ⭐ **AI:** Great observation! Let's create a systematic approach. I suggest we evaluate each candidate on three criteria: leadership, technical skills, and cultural fit. Does that work for you?
->
-> 👤 **You:** That makes sense, but I think we should also consider their potential for growth, not just current skills.
->
-> ⭐ **AI:** Excellent point! You're right — growth potential is important. Let's add that as a fourth criterion...
->
-> *[Conversation continues...]*
+⭐ **AI:** Hello! I'm excited to help you with this task. Shall we start by reviewing the requirements?
+
+👤 **You:** Yes, that sounds good. I think the main goal is to evaluate the candidates based on their experience and cultural fit.
+
+⭐ **AI:** Great observation! Let's create a systematic approach. I suggest we evaluate each candidate on three criteria: leadership, technical skills, and cultural fit. Does that work for you?
+
+👤 **You:** That makes sense, but I think we should also consider their potential for growth, not just current skills.
+
+⭐ **AI:** Excellent point! You're right — growth potential is important. Let's add that as a fourth criterion...
+
+*[Conversation continues...]*
 
 ---
 
@@ -671,17 +671,17 @@ KO = {
 
 **대화 예시:**
 
-> ⭐ **AI:** 안녕하세요! 이 과제를 함께 해결해 나가게 되어 기쁩니다. 요구사항을 검토하는 것부터 시작할까요?
->
-> 👤 **나:** 네, 좋습니다. 주요 목표는 경험과 문화적 적합성을 바탕으로 후보자를 평가하는 것이라고 생각합니다.
->
-> ⭐ **AI:** 좋은 관찰입니다! 체계적인 접근 방식을 만들어 봅시다. 리더십, 기술적 역량, 문화적 적합성의 세 가지 기준으로 각 후보자를 평가할 것을 제안합니다. 어떻게 생각하세요?
->
-> 👤 **나:** 맞는 것 같은데, 현재 역량뿐만 아니라 성장 가능성도 고려해야 할 것 같습니다.
->
-> ⭐ **AI:** 훌륭한 지적입니다! 맞아요 — 성장 가능성도 중요하죠. 네 번째 기준으로 추가해 봅시다...
->
-> *[대화 계속...]*
+⭐ **AI:** 안녕하세요! 이 과제를 함께 해결해 나가게 되어 기쁩니다. 요구사항을 검토하는 것부터 시작할까요?
+
+👤 **나:** 네, 좋습니다. 주요 목표는 경험과 문화적 적합성을 바탕으로 후보자를 평가하는 것이라고 생각합니다.
+
+⭐ **AI:** 좋은 관찰입니다! 체계적인 접근 방식을 만들어 봅시다. 리더십, 기술적 역량, 문화적 적합성의 세 가지 기준으로 각 후보자를 평가할 것을 제안합니다. 어떻게 생각하세요?
+
+👤 **나:** 맞는 것 같은데, 현재 역량뿐만 아니라 성장 가능성도 고려해야 할 것 같습니다.
+
+⭐ **AI:** 훌륭한 지적입니다! 맞아요 — 성장 가능성도 중요하죠. 네 번째 기준으로 추가해 봅시다...
+
+*[대화 계속...]*
 
 ---
 
