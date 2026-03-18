@@ -76,11 +76,11 @@ EN = {
         "For each statement, please indicate how much you agree or disagree based on how you generally are — "
         "there are no right or wrong answers.\n\n"
         "Please rate each statement on a scale of 1–5:\n\n"
-        "1 = Strongly Disagree\n"
-        "2 = Disagree\n"
-        "3 = Neutral\n"
-        "4 = Agree\n"
-        "5 = Strongly Agree\n\n"
+        "- 1 = Strongly Disagree\n"
+        "- 2 = Disagree\n"
+        "- 3 = Neutral\n"
+        "- 4 = Agree\n"
+        "- 5 = Strongly Agree\n\n"
         "There are 50 statements in total. Please select one option for each statement before submitting."
     ),
     "big5_submit_btn":       "Submit Assessment",
@@ -615,11 +615,11 @@ KO = {
         "각 진술에 대해 참여하시는분이 일반적으로 어떤지를 바탕으로 얼마나 동의하거나 동의하지 않는지를 표시하십시오 — "
         "옳거나 틀린 답은 없습니다.\n\n"
         "1–5점 척도로 각 진술을 평가하십시오:\n\n"
-        "1 = 매우 동의하지 않음\n"
-        "2 = 동의하지 않음\n"
-        "3 = 보통\n"
-        "4 = 동의함\n"
-        "5 = 매우 동의함\n\n"
+        "- 1 = 매우 동의하지 않음\n"
+        "- 2 = 동의하지 않음\n"
+        "- 3 = 보통\n"
+        "- 4 = 동의함\n"
+        "- 5 = 매우 동의함\n\n"
         "총 50개의 진술이 있습니다. 제출하기 전에 각 진술에 대해 하나의 옵션을 선택하십시오."
     ),
     "big5_submit_btn":       "평가 제출",
