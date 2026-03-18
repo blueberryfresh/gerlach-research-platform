@@ -196,7 +196,10 @@ class PostExpSurvey:
     
     # Survey responses (customizable)
     responses: Dict[str, Any] = field(default_factory=dict)
-    
+
+    # Labeled responses: q-key → {question, response} — for admin readability
+    labeled_responses: Dict[str, Any] = field(default_factory=dict)
+
     # Satisfaction ratings (1-7 scale)
     task_difficulty: Optional[int] = None
     llm_helpfulness: Optional[int] = None

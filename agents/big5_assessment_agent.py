@@ -10,6 +10,7 @@ import uuid
 import logging
 
 from .data_models import Big5Assessment
+from strings import T
 
 
 class Big5AssessmentAgent:
@@ -87,15 +88,15 @@ class Big5AssessmentAgent:
         self.logger = logging.getLogger(__name__)
     
     def get_assessment_items(self) -> List[Dict]:
-        """Get all assessment items in randomized order"""
+        """Get all assessment items with localised display text (from strings.T).
+        The id and reverse fields are sourced from T["big5_items"] which mirrors
+        ASSESSMENT_ITEMS — only the 'text' value is translated.
+        """
         all_items = []
-        for trait, items in self.ASSESSMENT_ITEMS.items():
+        for trait, items in T["big5_items"].items():
             for item in items:
-                all_items.append({
-                    **item,
-                    "trait": trait
-                })
-        
+                all_items.append({**item, "trait": trait})
+
         # Shuffle items for assessment (optional)
         # random.shuffle(all_items)
         return all_items

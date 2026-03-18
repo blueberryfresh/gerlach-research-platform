@@ -68,31 +68,220 @@ def get_all_participants():
     
     return participants
 
+def _json_to_txt(folder: str, data: dict, sub_folder: str = '') -> str:
+    """Convert a JSON data dict to a human-readable plain-text string."""
+    lines = []
+
+    SEP = '=' * 60
+
+    def add(label, value, indent=0):
+        prefix = '  ' * indent
+        lines.append(f"{prefix}{label:<24}{value}")
+
+    def fmt_duration(seconds):
+        if not isinstance(seconds, (int, float)):
+            return '—'
+        m, s = divmod(int(seconds), 60)
+        return f"{m}m {s}s"
+
+    def fmt_score(v):
+        return f"{v:.1f}" if isinstance(v, (int, float)) else str(v)
+
+    if folder == 'sessions':
+        lines += ['SESSION RECORD', SEP]
+        add('Participant:', data.get('user_id', ''))
+        add('Session ID:', data.get('session_id', ''))
+        add('Started:', data.get('started_at', ''))
+        add('Ended:', data.get('ended_at') or '—')
+        add('Current stage:', data.get('current_stage', ''))
+        add('Completed stages:', ', '.join(data.get('completed_stages', [])) or '—')
+        lines.append('')
+        lines.append('Linked data:')
+        add('Assessment ID:', data.get('big5_assessment_id') or '—', indent=1)
+        add('Dialogue IDs:', ', '.join(data.get('dialogue_records', [])) or '—', indent=1)
+        add('Task response IDs:', ', '.join(data.get('task_response_ids', [])) or '—', indent=1)
+        add('Survey ID:', data.get('survey_id') or '—', indent=1)
+        add('Report ID:', data.get('report_id') or '—', indent=1)
+
+    elif folder == 'assessments':
+        lines += ['BIG5 PERSONALITY ASSESSMENT', SEP]
+        add('Participant:', data.get('user_id', ''))
+        add('Assessment ID:', data.get('assessment_id', ''))
+        add('Date:', data.get('conducted_at', ''))
+        lines += ['', '--- Big5 Scores (0–100 scale) ---']
+        for trait in ('openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'):
+            add(f"{trait.capitalize()}:", fmt_score(data.get(trait, '')))
+        lines.append('')
+        gerlach_conf = data.get('gerlach_confidence')
+        add('Gerlach Type:', data.get('gerlach_type') or '—')
+        add('Confidence:', f"{gerlach_conf:.1f}%" if isinstance(gerlach_conf, (int, float)) else '—')
+        lines += ['', '--- Individual Item Responses ---']
+        responses = data.get('responses', {})
+        if responses:
+            for key in sorted(responses.keys()):
+                lines.append(f"  {key}: {responses[key]}")
+        else:
+            lines.append('  (none recorded)')
+
+    elif folder == 'dialogues':
+        lines += ['DIALOGUE TRANSCRIPT', SEP]
+        add('Participant:', data.get('user_id', ''))
+        add('Dialogue ID:', data.get('dialogue_id', ''))
+        add('Task:', data.get('task_name', ''))
+        add('AI Personality:', data.get('llm_personality', ''))
+        add('Started:', data.get('started_at', ''))
+        add('Ended:', data.get('ended_at') or '—')
+        add('Duration:', fmt_duration(data.get('duration_seconds')))
+        add('Total messages:', str(data.get('total_messages', '')))
+        add('Participant msgs:', str(data.get('user_message_count', '')))
+        add('AI msgs:', str(data.get('assistant_message_count', '')))
+        lines += ['', '--- Conversation ---']
+        for msg in data.get('messages', []):
+            ts = msg.get('timestamp', '')
+            ts_short = ts[11:19] if len(ts) >= 19 else ts
+            label = 'PARTICIPANT' if msg.get('role') == 'user' else 'AI ASSISTANT'
+            lines.append(f"\n[{ts_short}] {label}:")
+            for content_line in msg.get('content', '').splitlines():
+                lines.append(f"  {content_line}")
+
+    elif folder == 'task_responses':
+        if sub_folder == 'noble' or 'rankings' in data:
+            lines += ['TASK RESPONSE — Noble Industries', SEP]
+            add('Participant:', data.get('user_id', ''))
+            add('Response ID:', data.get('task_response_id', ''))
+            add('Submitted:', data.get('submitted_at', ''))
+            add('Time to complete:', fmt_duration(data.get('time_to_complete_seconds')))
+            add('Ranking changes:', str(data.get('ranking_changes', 0)))
+            lines += ['', '--- Candidate Rankings ---']
+            for r in data.get('rankings', []):
+                lines.append(f"\nRank {r.get('rank', '?')}: {r.get('candidate_name', '')}")
+                for rl in r.get('rationale', '').splitlines():
+                    lines.append(f"  {rl}")
+        else:
+            lines += ['TASK RESPONSE — Popcorn Brain', SEP]
+            add('Participant:', data.get('user_id', ''))
+            add('Response ID:', data.get('task_response_id', ''))
+            add('Submitted:', data.get('submitted_at', ''))
+            lines += ['', '--- Self-Assessment Ratings (1–7 scale) ---']
+            for dim in ('originality', 'flexibility', 'elaboration', 'fluency'):
+                add(f"{dim.capitalize()}:", str(data.get(f"{dim}_rating", '')))
+            lines += ['', '--- Computed Metrics ---']
+            add('Total ideas:', str(data.get('total_ideas', '')))
+            add('Unique ideas:', str(data.get('unique_ideas', '')))
+            add('Alternative approaches:', str(data.get('alternative_approaches', '')))
+            add('Detail instances:', str(data.get('detail_instances', '')))
+            ipm = data.get('ideas_per_minute', '')
+            add('Ideas per minute:', f"{ipm:.2f}" if isinstance(ipm, (int, float)) else str(ipm))
+            for dim in ('originality', 'flexibility', 'elaboration', 'fluency'):
+                dim_data = data.get(dim)
+                if dim_data and isinstance(dim_data, dict):
+                    lines.append(f"\n  {dim.capitalize()} detail:")
+                    lines.append(f"    Self-rating:     {dim_data.get('self_rating', '')}")
+                    lines.append(f"    Computed count:  {dim_data.get('computed_count', '')}")
+                    for ex in dim_data.get('examples', []):
+                        lines.append(f"    - {ex}")
+
+    elif folder == 'surveys':
+        lines += ['POST-EXPERIMENT SURVEY', SEP]
+        add('Participant:', data.get('user_id', ''))
+        add('Survey ID:', data.get('survey_id', ''))
+        add('Date:', data.get('conducted_at', ''))
+        labeled = data.get('labeled_responses', {})
+        if labeled:
+            lines += ['', '--- Survey Responses ---']
+            for key in sorted(labeled.keys()):
+                item = labeled[key]
+                if isinstance(item, dict):
+                    q = item.get('question', key)
+                    r = item.get('response', '')
+                else:
+                    q, r = key, str(item)
+                lines.append(f"\n{q}")
+                lines.append(f"  Response: {r}")
+        else:
+            responses = data.get('responses', {})
+            if responses:
+                lines += ['', '--- Survey Responses (raw) ---']
+                for k, v in responses.items():
+                    lines.append(f"  {k}: {v}")
+        for field_key, label in [
+            ('what_worked_well', 'What worked well'),
+            ('what_could_improve', 'What could improve'),
+            ('additional_comments', 'Additional comments'),
+        ]:
+            val = data.get(field_key)
+            if val:
+                lines.append(f"\n{label}:\n  {val}")
+
+    elif folder == 'reports':
+        lines += ['PARTICIPANT REPORT — SUMMARY', SEP]
+        add('Participant:', data.get('user_id', ''))
+        add('Report ID:', data.get('report_id', ''))
+        add('Generated:', data.get('generated_at', ''))
+        lines += ['', '--- Big5 Scores ---']
+        for trait, score in data.get('big5_scores', {}).items():
+            add(f"{trait.capitalize()}:", fmt_score(score))
+        lines += ['', '']
+        add('Gerlach Type:', data.get('gerlach_type') or '—')
+        lines += ['', '--- Study Activity ---']
+        add('Total messages:', str(data.get('total_messages', '')))
+        add('Total time:', fmt_duration(data.get('total_time_seconds')))
+        tasks = data.get('tasks_completed', [])
+        if tasks:
+            lines.append('\nTasks completed:')
+            for t in tasks:
+                lines.append(f"  - {t}")
+        personalities = data.get('llm_personalities_used', [])
+        if personalities:
+            lines.append('\nAI personalities encountered:')
+            for p in personalities:
+                lines.append(f"  - {p}")
+        avg_sat = data.get('average_satisfaction')
+        avg_diff = data.get('average_task_difficulty')
+        if avg_sat is not None:
+            add('Average satisfaction:', fmt_score(avg_sat))
+        if avg_diff is not None:
+            add('Average difficulty:', fmt_score(avg_diff))
+        lines.append('\n(For the full narrative report, see the accompanying .html file.)')
+
+    else:
+        lines += [f'DATA FILE — {folder.upper()}', SEP]
+        lines.append(json.dumps(data, indent=2))
+
+    return '\n'.join(lines)
+
+
 def create_zip_all_data():
     """Create ZIP file containing all research data"""
     data_dir = DATA_DIR
 
     if not data_dir.exists():
         return None
-    
+
     zip_buffer = io.BytesIO()
-    
+
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
         for folder in ['sessions', 'assessments', 'dialogues', 'task_responses', 'surveys', 'reports']:
             folder_path = data_dir / folder
-            if folder_path.exists():
-                for file_path in folder_path.rglob('*.json'):
-                    arcname = file_path.relative_to(data_dir)
-                    zip_file.write(file_path, arcname)
-                
-                for file_path in folder_path.rglob('*.md'):
-                    arcname = file_path.relative_to(data_dir)
-                    zip_file.write(file_path, arcname)
-                
-                for file_path in folder_path.rglob('*.html'):
-                    arcname = file_path.relative_to(data_dir)
-                    zip_file.write(file_path, arcname)
-    
+            if not folder_path.exists():
+                continue
+
+            for file_path in folder_path.rglob('*.json'):
+                arcname = Path(str(file_path.relative_to(data_dir))).with_suffix('.txt')
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    sub = file_path.parent.name if file_path.parent.name != folder else ''
+                    zip_file.writestr(str(arcname), _json_to_txt(folder, data, sub))
+                except Exception:
+                    zip_file.write(file_path, file_path.relative_to(data_dir))
+
+            for file_path in folder_path.rglob('*.md'):
+                zip_file.write(file_path, file_path.relative_to(data_dir))
+
+            for file_path in folder_path.rglob('*.html'):
+                zip_file.write(file_path, file_path.relative_to(data_dir))
+
     zip_buffer.seek(0)
     return zip_buffer
 
@@ -152,7 +341,16 @@ def create_zip_participant_data(user_id):
             if not folder_path.exists():
                 continue
             for file_path in folder_path.rglob(f'*{user_id}*'):
-                if file_path.suffix in ('.json', '.md', '.html'):
+                if file_path.suffix == '.json':
+                    arcname = str(Path(_descriptive_name(folder, file_path, user_id)).with_suffix('.txt'))
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                        sub = file_path.parent.name if file_path.parent.name != folder else ''
+                        zip_file.writestr(arcname, _json_to_txt(folder, data, sub))
+                    except Exception:
+                        zip_file.write(file_path, _descriptive_name(folder, file_path, user_id))
+                elif file_path.suffix in ('.md', '.html'):
                     arcname = _descriptive_name(folder, file_path, user_id)
                     zip_file.write(file_path, arcname)
 

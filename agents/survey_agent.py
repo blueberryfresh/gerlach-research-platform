@@ -10,6 +10,7 @@ import uuid
 import logging
 
 from .data_models import PostExpSurvey
+from strings import T
 
 
 class PostExpSurveyAgent:
@@ -18,7 +19,7 @@ class PostExpSurveyAgent:
     after users complete task-solving dialogues
     """
     
-    # LLM-Human Collaboration Post Session Questionnaire (rev4 — 36 questions; q2 dropped)
+    # LLM-Human Collaboration Post Session Questionnaire (rev5 — 32 questions; q2, q27-q30 dropped)
     # Likert scale questions (1-7): 1=Strongly Disagree, 7=Strongly Agree
     SURVEY_QUESTIONS = {
         "q1": {
@@ -146,26 +147,6 @@ class PostExpSurveyAgent:
             "type": "likert",
             "scale": (1, 7)
         },
-        "q27": {
-            "question": "In the LLM-Human collaboration, the LLM's active communication with me allowed me to be more active in expressing my views as well.",
-            "type": "likert",
-            "scale": (1, 7)
-        },
-        "q28": {
-            "question": "In the LLM-Human collaboration, the LLM's voice tone was loud and clear, which helped our communication.",
-            "type": "likert",
-            "scale": (1, 7)
-        },
-        "q29": {
-            "question": "In the LLM-Human collaboration, the gender of the LLM's voice did not influence my collaboration experience at all.",
-            "type": "likert",
-            "scale": (1, 7)
-        },
-        "q30": {
-            "question": "In the LLM-Human collaboration, the fact that my partner had a male voice (or female voice) allowed me to focus more on the problems.",
-            "type": "likert",
-            "scale": (1, 7)
-        },
         "q31": {
             "question": "In the LLM-Human collaboration, I think the partner's gender can be an issue.",
             "type": "likert",
@@ -213,8 +194,8 @@ class PostExpSurveyAgent:
         self.logger = logging.getLogger(__name__)
     
     def get_survey_questions(self) -> Dict:
-        """Get all survey questions"""
-        return self.SURVEY_QUESTIONS
+        """Get all survey questions (localised via strings.T)"""
+        return T["survey_questions"]
     
     def conduct_survey(
         self,
@@ -228,17 +209,17 @@ class PostExpSurveyAgent:
         Conduct post-experiment survey and create record
         """
         survey_id = f"survey_{user_id}_{uuid.uuid4().hex[:8]}"
-        
-        # Extract specific ratings
-        task_difficulty = responses.get("task_difficulty")
-        llm_helpfulness = responses.get("llm_helpfulness")
-        overall_satisfaction = responses.get("overall_satisfaction")
-        
-        # Extract open-ended responses
-        what_worked_well = responses.get("what_worked_well")
-        what_could_improve = responses.get("what_could_improve")
-        additional_comments = responses.get("additional_comments")
-        
+
+        # Build labeled_responses: maps each q-key to its question text and the participant's answer
+        labeled_responses = {}
+        for q_key, response_value in responses.items():
+            q_info = T["survey_questions"].get(q_key, {})
+            labeled_responses[q_key] = {
+                "question": q_info.get("question", q_key),
+                "type": q_info.get("type", "unknown"),
+                "response": response_value
+            }
+
         # Create survey record
         survey = PostExpSurvey(
             survey_id=survey_id,
@@ -247,12 +228,7 @@ class PostExpSurveyAgent:
             dialogue_id=dialogue_id,
             conducted_at=datetime.now().isoformat(),
             responses=responses,
-            task_difficulty=task_difficulty,
-            llm_helpfulness=llm_helpfulness,
-            overall_satisfaction=overall_satisfaction,
-            what_worked_well=what_worked_well,
-            what_could_improve=what_could_improve,
-            additional_comments=additional_comments,
+            labeled_responses=labeled_responses,
             metadata=metadata or {}
         )
         
