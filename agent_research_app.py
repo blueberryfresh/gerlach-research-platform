@@ -429,7 +429,11 @@ def render_task_dialogue():
         else:
             st.chat_message("assistant", avatar="🤖").write(msg.content)
 
-    # ── Complete Task button (below conversation) ────────────────────────────
+    # ── Collaboration guide (above complete button) ──────────────────────────
+    with st.expander(T["task_dial_guide_expander"], expanded=True):
+        st.markdown(T["task_dial_guide"])
+
+    # ── Complete Task button (last on page) ───────────────────────────────────
     st.markdown("---")
     st.warning(T["task_dial_warning"])
     col1, col2 = st.columns([3, 1])
@@ -443,10 +447,6 @@ def render_task_dialogue():
                 WorkflowStage.TASK_RESPONSE
             )
             st.rerun()
-
-    # ── Collaboration guide (at bottom, always visible) ──────────────────────
-    with st.expander(T["task_dial_guide_expander"], expanded=True):
-        st.markdown(T["task_dial_guide"])
 
     # ── Chat input (Streamlit renders this sticky at viewport bottom) ────────
     user_input = st.chat_input(T["task_dial_chat_placeholder"])
