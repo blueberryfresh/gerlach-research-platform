@@ -593,7 +593,7 @@ KO = {
     "reg_id_help":           "이 ID는 참여하시는분의 진행 상황을 추적하고 저장하는 데 사용됩니다.",
     "reg_consent":           "본 연구에 참여하는 것에 동의합니다",
     "reg_consent_help":      "참여하시는분의 데이터는 익명으로 처리되며 연구 목적으로만 사용됩니다.",
-    "reg_begin_btn":         "연구 시작",
+    "reg_begin_btn":         "실험 시작",
     "reg_err_no_id":         "참여자 ID를 입력하십시오.",
     "reg_err_no_consent":    "계속하려면 동의 체크박스를 선택하십시오.",
     "resume_instructions": (
