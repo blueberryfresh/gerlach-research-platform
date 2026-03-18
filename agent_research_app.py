@@ -338,17 +338,17 @@ def render_task_selection():
 
     # Validate task files
     if not TASK_FOLDER.exists():
-        st.error("Task folder not found. Please ensure the `Task/` directory exists with the required PDFs.")
+        st.error(T["task_sel_err_folder"])
         return
     task_names = [t.name for t in TASK_FOLDER.glob("*.pdf")]
     missing = [t for t in REQUIRED_TASKS if t not in task_names]
     if missing:
-        st.error(f"Required task files missing from `Task/` folder: {', '.join(missing)}")
+        st.error(T["task_sel_err_files_missing"])
         return
 
     assigned_task, assigned_personality = _get_or_assign(session)
     if not assigned_task:
-        st.error("Could not assign a task. Please contact the researcher.")
+        st.error(T["task_sel_err_assign"])
         return
 
     st.header(T["task_sel_header"])
@@ -393,7 +393,7 @@ def render_task_dialogue():
     dialogue = agents['dialogue'].get_dialogue(dialogue_id)
 
     if not dialogue:
-        st.error("Dialogue not found")
+        st.error(T["task_dial_err_not_found"])
         return
 
     # Generate a one-time welcome message when the dialogue is brand new
@@ -443,6 +443,10 @@ def render_task_dialogue():
                 WorkflowStage.TASK_RESPONSE
             )
             st.rerun()
+
+    # ── Collaboration guide (at bottom, always visible) ──────────────────────
+    with st.expander(T["task_dial_guide_expander"], expanded=True):
+        st.markdown(T["task_dial_guide"])
 
     # ── Chat input (Streamlit renders this sticky at viewport bottom) ────────
     user_input = st.chat_input(T["task_dial_chat_placeholder"])
@@ -536,13 +540,6 @@ def render_completed():
     st.success(T["completed_success"])
 
     st.markdown("---")
-
-    if st.button(T["completed_new_session_btn"], use_container_width=True):
-        # Clear session state
-        st.session_state.user_id = None
-        st.session_state.current_session = None
-        st.session_state.current_dialogue_id = None
-        st.rerun()
 
 
 # Main App

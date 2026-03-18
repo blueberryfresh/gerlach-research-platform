@@ -17,6 +17,8 @@ try:
 except ImportError:
     HAS_STREAMLIT = False
 
+from strings import T
+
 
 @dataclass
 class Message:
@@ -95,10 +97,13 @@ class GerlachPersonalityLLM:
         raise NotImplementedError
 
     def build_system_prompt(self, task_context: str = "") -> str:
-        """Combine task rules + personality style into final system prompt."""
+        """Combine language instruction (first) + task rules + personality style into final system prompt."""
         task_section = _TASK_RULES.format(
             task_context=task_context.strip() if task_context else "No specific task context provided."
         )
+        lang_instruction = T.get("llm_language_instruction", "")
+        if lang_instruction:
+            return lang_instruction + "\n\n" + task_section + self.get_personality_prompt()
         return task_section + self.get_personality_prompt()
 
     def chat(self, messages: List[Dict[str, str]], task_context: str = "", max_tokens: int = 200) -> str:
