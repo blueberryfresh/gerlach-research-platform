@@ -43,11 +43,17 @@ class UserSession:
         return data
     
     def save(self, data_dir: Path):
-        """Save session to JSON file"""
+        """Save session to JSON file and GitHub."""
+        data = self.to_dict()
         session_file = data_dir / "sessions" / f"{self.session_id}.json"
         session_file.parent.mkdir(parents=True, exist_ok=True)
         with open(session_file, 'w') as f:
-            json.dump(self.to_dict(), f, indent=2)
+            json.dump(data, f, indent=2)
+        try:
+            from github_storage import get_storage
+            get_storage().write(f"sessions/{self.session_id}.json", data)
+        except Exception:
+            pass
     
     @classmethod
     def load(cls, session_id: str, data_dir: Path):
@@ -87,11 +93,17 @@ class Big5Assessment:
         return asdict(self)
     
     def save(self, data_dir: Path):
-        """Save assessment to JSON file"""
+        """Save assessment to JSON file and GitHub."""
+        data = self.to_dict()
         assessment_file = data_dir / "assessments" / f"{self.assessment_id}.json"
         assessment_file.parent.mkdir(parents=True, exist_ok=True)
         with open(assessment_file, 'w') as f:
-            json.dump(self.to_dict(), f, indent=2)
+            json.dump(data, f, indent=2)
+        try:
+            from github_storage import get_storage
+            get_storage().write(f"assessments/{self.assessment_id}.json", data)
+        except Exception:
+            pass
     
     @classmethod
     def load(cls, assessment_id: str, data_dir: Path):
@@ -166,11 +178,17 @@ class DialogueRecord:
         return data
     
     def save(self, data_dir: Path):
-        """Save dialogue to JSON file"""
+        """Save dialogue to JSON file and GitHub."""
+        data = self.to_dict()
         dialogue_file = data_dir / "dialogues" / f"{self.dialogue_id}.json"
         dialogue_file.parent.mkdir(parents=True, exist_ok=True)
         with open(dialogue_file, 'w') as f:
-            json.dump(self.to_dict(), f, indent=2)
+            json.dump(data, f, indent=2)
+        try:
+            from github_storage import get_storage
+            get_storage().write(f"dialogues/{self.dialogue_id}.json", data)
+        except Exception:
+            pass
     
     @classmethod
     def load(cls, dialogue_id: str, data_dir: Path):
@@ -216,11 +234,17 @@ class PostExpSurvey:
         return asdict(self)
     
     def save(self, data_dir: Path):
-        """Save survey to JSON file"""
+        """Save survey to JSON file and GitHub."""
+        data = self.to_dict()
         survey_file = data_dir / "surveys" / f"{self.survey_id}.json"
         survey_file.parent.mkdir(parents=True, exist_ok=True)
         with open(survey_file, 'w') as f:
-            json.dump(self.to_dict(), f, indent=2)
+            json.dump(data, f, indent=2)
+        try:
+            from github_storage import get_storage
+            get_storage().write(f"surveys/{self.survey_id}.json", data)
+        except Exception:
+            pass
     
     @classmethod
     def load(cls, survey_id: str, data_dir: Path):
@@ -269,23 +293,35 @@ class UserReport:
         return asdict(self)
     
     def save(self, data_dir: Path):
-        """Save report to JSON file"""
+        """Save report to JSON file and GitHub."""
+        data = self.to_dict()
         report_file = data_dir / "reports" / f"{self.report_id}.json"
         report_file.parent.mkdir(parents=True, exist_ok=True)
         with open(report_file, 'w') as f:
-            json.dump(self.to_dict(), f, indent=2)
-        
+            json.dump(data, f, indent=2)
+
         # Save markdown report if available
         if self.markdown_report:
             md_file = data_dir / "reports" / f"{self.report_id}.md"
             with open(md_file, 'w', encoding='utf-8') as f:
                 f.write(self.markdown_report)
-        
+
         # Save HTML report if available
         if self.html_report:
             html_file = data_dir / "reports" / f"{self.report_id}.html"
             with open(html_file, 'w', encoding='utf-8') as f:
                 f.write(self.html_report)
+
+        try:
+            from github_storage import get_storage
+            gh = get_storage()
+            gh.write(f"reports/{self.report_id}.json", data)
+            if self.markdown_report:
+                gh.write_text(f"reports/{self.report_id}.md", self.markdown_report)
+            if self.html_report:
+                gh.write_text(f"reports/{self.report_id}.html", self.html_report)
+        except Exception:
+            pass
     
     @classmethod
     def load(cls, report_id: str, data_dir: Path):

@@ -37,6 +37,7 @@ from gerlach_personality_llms import GerlachPersonalityManager
 from task_response_ui import render_task_response
 import admin_download
 from strings import T, APP_LANG
+from github_storage import sync_from_github
 
 # Configuration
 DATA_DIR = Path(__file__).parent / "research_data"
@@ -53,7 +54,8 @@ st.set_page_config(
 @st.cache_resource
 def init_agents():
     """Initialize all agents"""
-    supervisor = SupervisorAgent(DATA_DIR)
+    supervisor = SupervisorAgent(DATA_DIR)  # creates local subdirectories
+    sync_from_github(DATA_DIR)             # restore any GitHub data on fresh deploy
     assessment_agent = Big5AssessmentAgent(DATA_DIR)
     dialogue_agent = DialogueCaptureAgent(DATA_DIR)
     task_response_agent = TaskResponseAgent(DATA_DIR)

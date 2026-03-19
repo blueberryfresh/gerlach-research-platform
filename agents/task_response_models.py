@@ -55,11 +55,17 @@ class NobleIndustriesResponse:
         return data
     
     def save(self, data_dir: Path):
-        """Save Noble Industries response to JSON file"""
+        """Save Noble Industries response to JSON file and GitHub."""
+        data = self.to_dict()
         response_file = data_dir / "task_responses" / "noble" / f"{self.task_response_id}.json"
         response_file.parent.mkdir(parents=True, exist_ok=True)
         with open(response_file, 'w') as f:
-            json.dump(self.to_dict(), f, indent=2)
+            json.dump(data, f, indent=2)
+        try:
+            from github_storage import get_storage
+            get_storage().write(f"task_responses/noble/{self.task_response_id}.json", data)
+        except Exception:
+            pass
     
     @classmethod
     def load(cls, task_response_id: str, data_dir: Path):
@@ -121,11 +127,17 @@ class PopcornBrainResponse:
         return data
     
     def save(self, data_dir: Path):
-        """Save Popcorn Brain response to JSON file"""
+        """Save Popcorn Brain response to JSON file and GitHub."""
+        data = self.to_dict()
         response_file = data_dir / "task_responses" / "popcorn" / f"{self.task_response_id}.json"
         response_file.parent.mkdir(parents=True, exist_ok=True)
         with open(response_file, 'w') as f:
-            json.dump(self.to_dict(), f, indent=2)
+            json.dump(data, f, indent=2)
+        try:
+            from github_storage import get_storage
+            get_storage().write(f"task_responses/popcorn/{self.task_response_id}.json", data)
+        except Exception:
+            pass
     
     @classmethod
     def load(cls, task_response_id: str, data_dir: Path):
