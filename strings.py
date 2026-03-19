@@ -182,6 +182,7 @@ EN = {
     # ── Completed ─────────────────────────────────────────────────────────────
     "completed_header":         "✅ Session Completed!",
     "completed_success":        "Thank you for participating in this research study!",
+    "completed_close_browser":  "You may now close the browser.",
     "completed_gen_btn":        "Generate Comprehensive Report",
     "completed_gen_spinner":    "Generating your research report...",
     "completed_report_id":      "Report generated! Report ID: {report_id}",
@@ -503,45 +504,40 @@ Bob concluded the meeting by saying, "I understand this is not an easy task, but
             "type": "likert",
             "scale": (1, 7),
         },
-        "q31": {
-            "question": "In the LLM-Human collaboration, I think the partner's gender can be an issue.",
-            "type": "likert",
-            "scale": (1, 7),
-        },
         "q32": {
             "question": "Briefly describe any conflicts or negative impacts from the LLM that you experienced during the collaboration, which you think influenced or affected the collaboration session and its productivity.",
             "type": "text",
-            "placeholder": "Describe any conflicts or negative impacts...",
+            "placeholder": "",
         },
         "q33": {
             "question": "Describe any positive impacts from the LLM that you experienced during the collaboration, which you think influenced or contributed to the collaboration productivity.",
             "type": "text",
-            "placeholder": "Describe positive impacts...",
+            "placeholder": "",
         },
         "q34": {
             "question": "Discuss the compatibility (personality, communication, or other aspects) between you and the LLM. If it was good, why? If not, why not? Do you think you can achieve high productivity with the LLM again?",
             "type": "text",
-            "placeholder": "Discuss compatibility...",
+            "placeholder": "",
         },
         "q35": {
             "question": "Besides the LLM's ability to contribute to the task, how did the LLM's personality play a role in your collaboration with the LLM? Was the personality compatible or not? Describe.",
             "type": "text",
-            "placeholder": "Describe the LLM's personality role...",
+            "placeholder": "",
         },
         "q36": {
             "question": "Besides the LLM's ability to contribute to the task, how did the LLM's communication skills play a role in your collaboration? Did the level of communication skill that the LLM exhibited bring a positive (or negative) feeling and impact to your collaboration with the LLM? Describe.",
             "type": "text",
-            "placeholder": "Describe the LLM's communication skill impact...",
+            "placeholder": "",
         },
         "q38": {
             "question": "What is your gender?",
             "type": "text",
-            "placeholder": "e.g., Male, Female, Non-binary, Prefer not to say...",
+            "placeholder": "",
         },
         "q39": {
             "question": "What is your major?",
             "type": "text",
-            "placeholder": "e.g., Computer Science, Psychology, Business...",
+            "placeholder": "",
         },
     },
 }
@@ -597,7 +593,7 @@ KO = {
 
     # ── Big5 Assessment ───────────────────────────────────────────────────────
     "big5_header": "📋 참여하시는분에 관한 설문",
-    "big5_info": "이것은 참여하시는분이라는 사람을 더 알기 위한 것입니다.",
+    "big5_info": "",
     "big5_instructions": (
         "각 진술에 대해 참여하시는분이 일반적으로 어떤지를 바탕으로 얼마나 동의하거나 동의하지 않는지를 표시하십시오 — "
         "옳거나 틀린 답은 없습니다.\n\n"
@@ -708,6 +704,7 @@ KO = {
     # ── Completed ─────────────────────────────────────────────────────────────
     "completed_header":          "✅ 세션 완료!",
     "completed_success":         "이 연구에 참여해 주셔서 감사합니다!",
+    "completed_close_browser":   "이제 브라우저를 닫아도 됩니다.",
     "completed_gen_btn":         "종합 보고서 생성",
     "completed_gen_spinner":     "연구 보고서를 생성하는 중...",
     "completed_report_id":       "보고서가 생성되었습니다! 보고서 ID: {report_id}",
@@ -1028,45 +1025,40 @@ Bob은 "이것이 쉬운 일이 아니라는 것을 알고 있지만, 현재 상
             "type": "likert",
             "scale": (1, 7),
         },
-        "q31": {
-            "question": "LLM-인간 협업에서, 파트너의 성별이 문제가 될 수 있다고 생각한다.",
-            "type": "likert",
-            "scale": (1, 7),
-        },
         "q32": {
             "question": "협업 중 경험한 LLM으로 인한 갈등이나 부정적 영향을 간략히 설명하세요. 이것이 협업 세션과 생산성에 어떤 영향을 미쳤다고 생각하십니까?",
             "type": "text",
-            "placeholder": "갈등이나 부정적 영향을 설명하세요...",
+            "placeholder": "",
         },
         "q33": {
             "question": "협업 중 경험한 LLM의 긍정적인 영향을 설명하세요. 이것이 협업 생산성에 어떤 영향을 미치거나 기여했다고 생각하십니까?",
             "type": "text",
-            "placeholder": "긍정적인 영향을 설명하세요...",
+            "placeholder": "",
         },
         "q34": {
             "question": "LLM과의 호환성(성격, 소통 또는 기타 측면)에 대해 논의하세요. 좋았다면 왜 그랬습니까? 좋지 않았다면 왜 그랬습니까? 다시 LLM과 협업하면 높은 생산성을 달성할 수 있다고 생각하십니까?",
             "type": "text",
-            "placeholder": "호환성에 대해 논의하세요...",
+            "placeholder": "",
         },
         "q35": {
             "question": "과제에 기여하는 LLM의 능력 외에도, LLM의 성격이 협업에서 어떤 역할을 했습니까? 성격이 잘 맞았습니까? 설명해 주세요.",
             "type": "text",
-            "placeholder": "LLM의 성격이 미친 역할을 설명하세요...",
+            "placeholder": "",
         },
         "q36": {
             "question": "과제에 기여하는 LLM의 능력 외에도, LLM의 의사소통 기술이 협업에서 어떤 역할을 했습니까? LLM이 보여준 의사소통 기술 수준이 협업에 긍정적(또는 부정적) 감정과 영향을 가져다 주었습니까? 설명해 주세요.",
             "type": "text",
-            "placeholder": "LLM의 의사소통 기술이 미친 영향을 설명하세요...",
+            "placeholder": "",
         },
         "q38": {
             "question": "참여하시는분의 성별은 무엇입니까?",
             "type": "text",
-            "placeholder": "예: 남성, 여성, 논바이너리, 응답하지 않겠습니다...",
+            "placeholder": "",
         },
         "q39": {
             "question": "참여하시는분의 전공은 무엇입니까?",
             "type": "text",
-            "placeholder": "예: 컴퓨터 과학, 심리학, 경영학...",
+            "placeholder": "",
         },
     },
 }

@@ -19,6 +19,7 @@ import random
 from pathlib import Path
 from datetime import datetime
 import sys
+import streamlit.components.v1 as components
 
 # Add agents to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -194,7 +195,8 @@ def render_big5_assessment():
     """Stage 2: Big5 Personality Assessment"""
     st.header(T["big5_header"])
 
-    st.info(T["big5_info"])
+    if T.get("big5_info"):
+        st.info(T["big5_info"])
 
     st.markdown(T["big5_instructions"])
 
@@ -375,6 +377,13 @@ def render_task_selection():
 def render_task_dialogue():
     """Stage 4: Task Dialogue — task description at top, chat in middle, complete at bottom."""
     dialogue_id = st.session_state.current_dialogue_id
+
+    # Scroll to top once per dialogue (prevents inheriting scroll position from Big5 page)
+    scroll_key = f'task_dial_scrolled_{dialogue_id}'
+    if not st.session_state.get(scroll_key):
+        components.html("<script>window.parent.scrollTo(0, 0);</script>", height=0)
+        st.session_state[scroll_key] = True
+
     dialogue = agents['dialogue'].get_dialogue(dialogue_id)
 
     if not dialogue:
@@ -523,6 +532,9 @@ def render_completed():
     st.header(T["completed_header"])
 
     st.success(T["completed_success"])
+
+    if T.get("completed_close_browser"):
+        st.info(T["completed_close_browser"])
 
     st.markdown("---")
 
