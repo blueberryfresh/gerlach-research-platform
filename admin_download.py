@@ -447,7 +447,7 @@ def admin_page():
     
     st.markdown("---")
     
-    tab1, tab2, tab3, tab4 = st.tabs(["📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test"])
     
     with tab1:
         st.header("Download All Research Data")
@@ -612,6 +612,38 @@ def admin_page():
             "2. Come back here and jump them to any stage\n"
             "3. Return to the main app with that ID via Resume Session to view that stage"
         )
+
+
+    with tab5:
+        st.header("GitHub Storage Connection Test")
+        st.write("Verify that the GitHub data repository is reachable and writable.")
+
+        if st.button("🔌 Run Connection Test", type="primary"):
+            from github_storage import get_storage
+            gh = get_storage()
+
+            if not gh.enabled:
+                st.error("❌ GitHub storage is **disabled**. Check that GITHUB_DATA_TOKEN, "
+                         "GITHUB_DATA_OWNER, and GITHUB_DATA_REPO are all set in Streamlit secrets.")
+            else:
+                st.info(f"Connecting to: `{gh.owner}/{gh.repo}`")
+
+                # Step 1: read the README to confirm read access
+                with st.spinner("Testing read access…"):
+                    raw = gh.read_raw("README.md")
+                if raw is not None:
+                    st.success("✅ Read access OK")
+                else:
+                    st.error("❌ Read failed — token may lack Contents permission or repo name is wrong")
+
+                # Step 2: write a small test file to confirm write access
+                with st.spinner("Testing write access…"):
+                    ok = gh.write("_connection_test.json", {"status": "ok"})
+                if ok:
+                    st.success("✅ Write access OK — GitHub storage is fully working!")
+                else:
+                    st.error("❌ Write failed — token likely missing **Contents: Read and write** permission. "
+                             "Regenerate the token and ensure that permission is set.")
 
 
 if __name__ == "__main__":
