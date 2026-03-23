@@ -400,10 +400,14 @@ def render_task_dialogue():
             "role": "user",
             "content": T["task_dial_welcome_prompt"]
         }]
-        with st.spinner(T["task_dial_spinner_welcome"]):
-            welcome = personality.chat(welcome_prompt, task_context=task_context)
-        agents['dialogue'].record_message(dialogue_id, "assistant", welcome)
-        st.rerun()
+        try:
+            with st.spinner(T["task_dial_spinner_welcome"]):
+                welcome = personality.chat(welcome_prompt, task_context=task_context)
+            agents['dialogue'].record_message(dialogue_id, "assistant", welcome)
+            st.rerun()
+        except Exception as e:
+            st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
+            st.stop()
 
     st.header(T["task_dial_header"])
 

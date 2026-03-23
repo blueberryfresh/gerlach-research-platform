@@ -105,6 +105,7 @@ EN = {
     "task_sel_err_files_missing": "Required task files are missing. Please contact the researcher.",
     "task_sel_err_assign":        "Could not assign a task. Please contact the researcher.",
     "task_dial_err_not_found":    "Dialogue not found. Please contact the researcher.",
+    "task_dial_err_llm":          "The AI assistant could not be reached. Please refresh the page to try again.",
 
     # ── Task Dialogue ─────────────────────────────────────────────────────────
     "task_dial_header":         "💬 Task Collaboration",
@@ -627,6 +628,7 @@ KO = {
     "task_sel_err_files_missing": "필수 과제 파일이 없습니다. 연구자에게 문의하십시오.",
     "task_sel_err_assign":        "과제를 배정할 수 없습니다. 연구자에게 문의하십시오.",
     "task_dial_err_not_found":    "대화를 찾을 수 없습니다. 연구자에게 문의하십시오.",
+    "task_dial_err_llm":          "AI 어시스턴트에 연결할 수 없습니다. 페이지를 새로고침하여 다시 시도해 주세요.",
 
     # ── Task Dialogue ─────────────────────────────────────────────────────────
     "task_dial_header":          "💬 과제 협업",
