@@ -651,8 +651,10 @@ div[role="radiogroup"] > label > div:nth-child(2) {
                 render_post_survey()
             elif session.current_stage == WorkflowStage.COMPLETED:
                 render_completed()
-        except Exception:
+        except Exception as _e:
+            import traceback as _tb
             st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
+            st.code(_tb.format_exc(), language="text")
 
 
 if __name__ == "__main__":
