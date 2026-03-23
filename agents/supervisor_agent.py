@@ -56,7 +56,7 @@ class SupervisorAgent:
             session = UserSession.load(session_id, self.data_dir)
             self.active_sessions[session_id] = session
             return session
-        except FileNotFoundError:
+        except Exception:
             return None
     
     def advance_stage(self, session_id: str, next_stage: WorkflowStage) -> bool:
