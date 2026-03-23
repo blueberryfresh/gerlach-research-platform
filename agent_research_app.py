@@ -631,24 +631,27 @@ div[role="radiogroup"] > label > div:nth-child(2) {
     if not st.session_state.current_session:
         render_registration()
     else:
-        # Always reload session from supervisor to get authoritative current_stage
-        fresh = agents['supervisor'].get_session(st.session_state.current_session.session_id)
-        if fresh:
-            st.session_state.current_session = fresh
-        session = st.session_state.current_session
+        try:
+            # Always reload session from supervisor to get authoritative current_stage
+            fresh = agents['supervisor'].get_session(st.session_state.current_session.session_id)
+            if fresh:
+                st.session_state.current_session = fresh
+            session = st.session_state.current_session
 
-        if session.current_stage == WorkflowStage.BIG5_ASSESSMENT:
-            render_big5_assessment()
-        elif session.current_stage == WorkflowStage.TASK_SELECTION:
-            render_task_selection()
-        elif session.current_stage == WorkflowStage.TASK_DIALOGUE:
-            render_task_dialogue()
-        elif session.current_stage == WorkflowStage.TASK_RESPONSE:
-            render_task_response(agents, session, st.session_state.current_dialogue_id)
-        elif session.current_stage == WorkflowStage.POST_SURVEY:
-            render_post_survey()
-        elif session.current_stage == WorkflowStage.COMPLETED:
-            render_completed()
+            if session.current_stage == WorkflowStage.BIG5_ASSESSMENT:
+                render_big5_assessment()
+            elif session.current_stage == WorkflowStage.TASK_SELECTION:
+                render_task_selection()
+            elif session.current_stage == WorkflowStage.TASK_DIALOGUE:
+                render_task_dialogue()
+            elif session.current_stage == WorkflowStage.TASK_RESPONSE:
+                render_task_response(agents, session, st.session_state.current_dialogue_id)
+            elif session.current_stage == WorkflowStage.POST_SURVEY:
+                render_post_survey()
+            elif session.current_stage == WorkflowStage.COMPLETED:
+                render_completed()
+        except Exception:
+            st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
 
 
 if __name__ == "__main__":
