@@ -359,20 +359,21 @@ def render_task_selection():
         st.error(T["task_sel_err_no_llm"])
         return
 
-    dialogue = agents['dialogue'].start_dialogue(
-        user_id=st.session_state.user_id,
-        session_id=session.session_id,
-        task_name=assigned_task,
-        llm_personality=assigned_personality
-    )
+    with st.spinner(T.get("task_sel_loading", "Loading your task…")):
+        dialogue = agents['dialogue'].start_dialogue(
+            user_id=st.session_state.user_id,
+            session_id=session.session_id,
+            task_name=assigned_task,
+            llm_personality=assigned_personality
+        )
 
-    st.session_state.current_dialogue_id = dialogue.dialogue_id
-    st.session_state.current_messages = []
+        st.session_state.current_dialogue_id = dialogue.dialogue_id
+        st.session_state.current_messages = []
 
-    session.dialogue_records.append(dialogue.dialogue_id)
-    session.save(DATA_DIR)
+        session.dialogue_records.append(dialogue.dialogue_id)
+        session.save(DATA_DIR)
 
-    agents['supervisor'].advance_stage(session.session_id, WorkflowStage.TASK_DIALOGUE)
+        agents['supervisor'].advance_stage(session.session_id, WorkflowStage.TASK_DIALOGUE)
     st.rerun()
 
 
