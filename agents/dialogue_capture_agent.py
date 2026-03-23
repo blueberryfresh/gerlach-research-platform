@@ -100,7 +100,7 @@ class DialogueCaptureAgent:
         try:
             dialogue = DialogueRecord.load(dialogue_id, self.data_dir)
             return dialogue
-        except FileNotFoundError:
+        except Exception:
             return None
     
     def get_session_dialogues(self, session_id: str) -> List[DialogueRecord]:
