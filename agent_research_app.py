@@ -642,6 +642,8 @@ div[role="radiogroup"] > label > div:nth-child(2) {
             st.info(T["sidebar_returning"].format(user_id=st.session_state.user_id))
             st.markdown("---")
 
+            st.info(T["sidebar_blank_page_tip"])
+
             if st.button(T["sidebar_reload_btn"], use_container_width=True, key="reload_page"):
                 fresh = agents['supervisor'].find_active_session_by_user(st.session_state.user_id)
                 if fresh:

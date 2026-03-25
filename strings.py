@@ -215,6 +215,11 @@ EN = {
         "**Returning to the study?** Click the **Resume Session** tab "
         "on the home page and enter your ID **`{user_id}`** to continue where you left off."
     ),
+    "sidebar_blank_page_tip": (
+        "**Seeing a blank or frozen page?** "
+        "Press **🔄 Reload Page** below. Your progress is always saved — "
+        "you will return exactly where you left off."
+    ),
     "sidebar_reload_btn":   "🔄 Reload Page",
     "sidebar_save_exit_btn":"💾 Save & Exit",
     "sidebar_saved_msg": (
@@ -742,6 +747,11 @@ KO = {
     "sidebar_returning": (
         "**연구로 돌아오시나요?** 홈 페이지에서 **세션 재개** 탭을 클릭하고 "
         "ID **`{user_id}`**를 입력하여 중단한 곳에서 계속하십시오."
+    ),
+    "sidebar_blank_page_tip": (
+        "**화면이 비어 있거나 멈췄나요?** "
+        "아래의 **🔄 페이지 새로고침** 버튼을 누르세요. "
+        "참여하시는분의 진행 상황은 항상 저장되어 있으며, 중단한 곳에서 바로 이어집니다."
     ),
     "sidebar_reload_btn":    "🔄 페이지 새로고침",
     "sidebar_save_exit_btn": "💾 저장 후 종료",
