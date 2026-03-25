@@ -261,6 +261,19 @@ PERSONALITY_LABELS = {
 
 REQUIRED_TASKS = ["NOBLE INDUSTRIES for Big5.pdf", "Popcorn Brain Task for Big5-rev2.pdf"]
 POPCORN_TASK = "Popcorn Brain Task for Big5-rev2.pdf"
+NOBLE_TASK   = "NOBLE INDUSTRIES for Big5.pdf"
+
+_NOBLE_TABLE_INSTRUCTION = """
+FINAL ORDER TABLE INSTRUCTION:
+When you and the participant have reached final agreement on the layoff order, present a markdown table summarising the agreed order from first to last laid off. Use exactly this format:
+
+| Order | Employee | Reason |
+|-------|----------|--------|
+| 1st   | [Name]   | [Brief reason] |
+| 2nd   | [Name]   | [Brief reason] |
+
+Present this table only once, after the participant has explicitly confirmed they are satisfied with the complete order. Do not present the table until that confirmation.
+"""
 
 
 def _format_task_content(task_name: str, raw: str) -> str:
@@ -397,6 +410,8 @@ def render_task_dialogue():
     if len(dialogue.messages) == 0 and agents['llm_ready']:
         personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
         task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
+        if dialogue.task_name == NOBLE_TASK:
+            task_context += _NOBLE_TABLE_INSTRUCTION
         welcome_prompt = [{
             "role": "user",
             "content": T["task_dial_welcome_prompt"]
@@ -423,31 +438,47 @@ def render_task_dialogue():
 
     st.markdown("---")
 
-    # ── Dialogue history (scrollable) ───────────────────────────────────────
+    # ── Collaboration guide (above dialogue) ─────────────────────────────────
+    with st.expander(T["task_dial_guide_expander"], expanded=True):
+        st.markdown(T["task_dial_guide"])
+
+    st.markdown("---")
+
+    # ── Dialogue history (at bottom, just above complete button) ────────────
     for msg in dialogue.messages:
         if msg.role == "user":
             st.chat_message("user").write(msg.content)
         else:
             st.chat_message("assistant", avatar="🤖").write(msg.content)
 
-    # ── Collaboration guide (above complete button) ──────────────────────────
-    with st.expander(T["task_dial_guide_expander"], expanded=True):
-        st.markdown(T["task_dial_guide"])
-
     # ── Complete Task button (last on page) ───────────────────────────────────
     st.markdown("---")
     st.warning(T["task_dial_warning"])
+
+    is_noble = dialogue.task_name == NOBLE_TASK
+    if is_noble:
+        confirmed = st.checkbox(
+            T["task_dial_noble_confirm_label"],
+            key=f"noble_confirm_{dialogue_id}"
+        )
+    else:
+        confirmed = True
+
     col1, col2 = st.columns([3, 1])
     with col1:
         st.metric(T["task_dial_messages_metric"], dialogue.total_messages)
     with col2:
         if st.button(T["task_dial_complete_btn"], use_container_width=True, type="primary"):
-            agents['dialogue'].end_dialogue(dialogue_id)
-            agents['supervisor'].advance_stage(
-                st.session_state.current_session.session_id,
-                WorkflowStage.TASK_RESPONSE
-            )
-            st.rerun()
+            if not confirmed:
+                st.toast(T["task_dial_noble_confirm_warning"])
+                st.warning(T["task_dial_noble_confirm_warning"])
+            else:
+                agents['dialogue'].end_dialogue(dialogue_id)
+                agents['supervisor'].advance_stage(
+                    st.session_state.current_session.session_id,
+                    WorkflowStage.TASK_RESPONSE
+                )
+                st.rerun()
 
     # ── Chat input (Streamlit renders this sticky at viewport bottom) ────────
     user_input = st.chat_input(T["task_dial_chat_placeholder"])
@@ -460,6 +491,8 @@ def render_task_dialogue():
 
         # Reuse cached extraction — already handles tables and plain text
         task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
+        if dialogue.task_name == NOBLE_TASK:
+            task_context += _NOBLE_TABLE_INSTRUCTION
 
         try:
             with st.spinner(T["task_dial_spinner_thinking"]):

@@ -106,7 +106,7 @@ class GerlachPersonalityLLM:
             return lang_instruction + "\n\n" + task_section + self.get_personality_prompt()
         return task_section + self.get_personality_prompt()
 
-    def chat(self, messages: List[Dict[str, str]], task_context: str = "", max_tokens: int = 200) -> str:
+    def chat(self, messages: List[Dict[str, str]], task_context: str = "", max_tokens: int = 500) -> str:
         """Send messages to Claude and get response."""
         response = self.client.messages.create(
             model=self.model,
