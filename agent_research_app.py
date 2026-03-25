@@ -406,25 +406,7 @@ def render_task_dialogue():
         st.error(T["task_dial_err_not_found"])
         return
 
-    # Generate a one-time welcome message when the dialogue is brand new
-    if len(dialogue.messages) == 0 and agents['llm_ready']:
-        personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
-        task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
-        if dialogue.task_name == NOBLE_TASK:
-            task_context += _NOBLE_TABLE_INSTRUCTION
-        welcome_prompt = [{
-            "role": "user",
-            "content": T["task_dial_welcome_prompt"]
-        }]
-        try:
-            with st.spinner(T["task_dial_spinner_welcome"]):
-                welcome = personality.chat(welcome_prompt, task_context=task_context)
-            agents['dialogue'].record_message(dialogue_id, "assistant", welcome)
-            st.rerun()
-        except Exception as e:
-            st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
-            return
-
+    # ── Render page structure FIRST so the page is never blank on API failure ─
     st.header(T["task_dial_header"])
 
     # ── Task description (always accessible at top) ─────────────────────────
@@ -443,6 +425,25 @@ def render_task_dialogue():
         st.markdown(T["task_dial_guide"])
 
     st.markdown("---")
+
+    # Generate a one-time welcome message when the dialogue is brand new
+    if len(dialogue.messages) == 0 and agents['llm_ready']:
+        personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
+        task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
+        if dialogue.task_name == NOBLE_TASK:
+            task_context += _NOBLE_TABLE_INSTRUCTION
+        welcome_prompt = [{
+            "role": "user",
+            "content": T["task_dial_welcome_prompt"]
+        }]
+        try:
+            with st.spinner(T["task_dial_spinner_welcome"]):
+                welcome = personality.chat(welcome_prompt, task_context=task_context)
+            agents['dialogue'].record_message(dialogue_id, "assistant", welcome)
+            st.rerun()
+        except Exception as e:
+            st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
+            # No return — page continues rendering so participant isn't stuck on a blank screen
 
     # ── Dialogue history (at bottom, just above complete button) ────────────
     for msg in dialogue.messages:
