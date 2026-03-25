@@ -400,14 +400,14 @@ def render_task_dialogue():
         components.html("<script>window.parent.scrollTo(0, 0);</script>", height=0)
         st.session_state[scroll_key] = True
 
+    # ── Render page structure FIRST — no early returns before this point ───────
+    st.header(T["task_dial_header"])
+
     dialogue = agents['dialogue'].get_dialogue(dialogue_id)
 
     if not dialogue:
         st.error(T["task_dial_err_not_found"])
         return
-
-    # ── Render page structure FIRST so the page is never blank on API failure ─
-    st.header(T["task_dial_header"])
 
     # ── Task description (always accessible at top) ─────────────────────────
     with st.expander(T["task_dial_expander"], expanded=True):
