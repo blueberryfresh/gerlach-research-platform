@@ -408,7 +408,7 @@ def render_task_dialogue():
             st.rerun()
         except Exception as e:
             st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
-            st.stop()
+            return
 
     st.header(T["task_dial_header"])
 
@@ -461,11 +461,13 @@ def render_task_dialogue():
         # Reuse cached extraction — already handles tables and plain text
         task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
 
-        with st.spinner(T["task_dial_spinner_thinking"]):
-            response = personality.chat(messages, task_context=task_context)
-
-        agents['dialogue'].record_message(dialogue_id, "assistant", response)
-        st.rerun()
+        try:
+            with st.spinner(T["task_dial_spinner_thinking"]):
+                response = personality.chat(messages, task_context=task_context)
+            agents['dialogue'].record_message(dialogue_id, "assistant", response)
+            st.rerun()
+        except Exception:
+            st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
 
 
 def render_post_survey():

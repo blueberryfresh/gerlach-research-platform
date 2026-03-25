@@ -85,7 +85,7 @@ class GerlachPersonalityLLM:
 
         if not self.api_key:
             raise ValueError("ANTHROPIC_API_KEY not found in environment or Streamlit secrets")
-        self.client = anthropic.Anthropic(api_key=self.api_key, timeout=30.0)
+        self.client = anthropic.Anthropic(api_key=self.api_key, timeout=90.0)
         self.model = "claude-opus-4-20250514"
 
     def get_personality_prompt(self) -> str:
