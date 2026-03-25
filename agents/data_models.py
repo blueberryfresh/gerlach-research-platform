@@ -177,18 +177,25 @@ class DialogueRecord:
         data = asdict(self)
         return data
     
-    def save(self, data_dir: Path):
-        """Save dialogue to JSON file and GitHub."""
+    def save(self, data_dir: Path, force_github: bool = False):
+        """Save dialogue to JSON file and GitHub.
+
+        GitHub writes are throttled to every 5 messages to stay within API rate limits.
+        Pass force_github=True at end_dialogue() to guarantee a final sync.
+        """
         data = self.to_dict()
         dialogue_file = data_dir / "dialogues" / f"{self.dialogue_id}.json"
         dialogue_file.parent.mkdir(parents=True, exist_ok=True)
         with open(dialogue_file, 'w') as f:
             json.dump(data, f, indent=2)
-        try:
-            from github_storage import get_storage
-            get_storage().write(f"dialogues/{self.dialogue_id}.json", data)
-        except Exception:
-            pass
+        # Write to GitHub: on first message, every 5 messages, or when forced (end of dialogue)
+        should_sync = force_github or self.total_messages <= 1 or (self.total_messages % 5 == 0)
+        if should_sync:
+            try:
+                from github_storage import get_storage
+                get_storage().write(f"dialogues/{self.dialogue_id}.json", data)
+            except Exception:
+                pass
     
     @classmethod
     def load(cls, dialogue_id: str, data_dir: Path):
