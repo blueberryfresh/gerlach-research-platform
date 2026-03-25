@@ -142,7 +142,7 @@ class Big5AssessmentAgent:
             {"id": "O6",  "text": "나는 상상력이 좋지 않다.",                              "reverse": True},
             {"id": "O7",  "text": "나는 사물을 빠르게 이해한다.",                          "reverse": False},
             {"id": "O8",  "text": "나는 어려운 단어를 사용한다.",                          "reverse": False},
-            {"id": "O9",  "text": "나는 사물에 대해 반추하는 데 시간을 보낸다.",           "reverse": False},
+            {"id": "O9",  "text": "나는 사물에 대해 깊이 생각하는 데 시간을 보낸다.",        "reverse": False},
             {"id": "O10", "text": "나는 아이디어가 넘친다.",                               "reverse": False},
         ],
     }

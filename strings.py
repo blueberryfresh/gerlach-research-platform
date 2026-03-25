@@ -168,6 +168,10 @@ EN = {
 - Take breaks if needed (but don't close the browser)
 """,
 
+    # ── Noble Industries confirmation (shown above Complete Task button) ──────
+    "task_dial_noble_confirm_label":   "I confirm that the AI Partner has presented the final agreed layoff order table above, and I agree with the order shown.",
+    "task_dial_noble_confirm_warning": "Please check the box above to confirm the agreed layoff order before completing the task.",
+
     # ── Post-Task Survey ──────────────────────────────────────────────────────
     "survey_header":      "End of Study Survey",
     "survey_instructions": (
@@ -605,7 +609,7 @@ KO = {
         "- 3 = 보통\n"
         "- 4 = 동의함\n"
         "- 5 = 매우 동의함\n\n"
-        "총 50개의 진술이 있습니다. 제출하기 전에 각 진술에 대해 하나의 옵션을 선택하십시오."
+        "총 50개의 설문 문항이 있습니다. 제출하기 전에 각 문항에 대해 하나의 보기를 선택하십시오."
     ),
     "big5_submit_btn":       "다음 순서로 안내해주세요",
     "big5_toast_unanswered": "거의 다 됐습니다! 다음 문항에 응답하십시오: {nums_str}",
@@ -692,10 +696,14 @@ KO = {
 - 필요하면 잠시 멈춰도 됩니다 (단, 브라우저는 닫지 마세요)
 """,
 
+    # ── Noble Industries confirmation (shown above Complete Task button) ──────
+    "task_dial_noble_confirm_label":   "AI 파트너가 위에 최종 합의된 해고 순서 표를 제시했음을 확인하며, 표시된 순서에 동의합니다.",
+    "task_dial_noble_confirm_warning": "과제를 완료하기 전에 위의 체크박스를 선택하여 합의된 해고 순서를 확인해 주세요.",
+
     # ── Post-Task Survey ──────────────────────────────────────────────────────
-    "survey_header":      "연구 마침 설문지",
+    "survey_header":      "사후 설문지",
     "survey_instructions": (
-        "각 진술을 주의 깊게 읽고 참여하시는분의 경험을 가장 잘 반영하는 응답을 선택하십시오. "
+        "각 설문 문항을 주의 깊게 읽고 참여하시는분의 경험을 가장 잘 반영하는 응답을 선택하십시오. "
         "척도 사용: **1 = 매우 동의하지 않음** &nbsp; **7 = 매우 동의함**"
     ),
     "survey_submit_btn":         "설문지 제출",
@@ -812,6 +820,8 @@ Bob은 "이것이 쉬운 일이 아니라는 것을 알고 있지만, 현재 상
 | Sharon | 36 | 사무직 | 12 | 고등학교 졸업 | Harrison H.S. | 기혼 | 6 |
 | Susan | 51 | 애플리케이션 프로그래머 | 9 | BS - CIS | 텍사스 A&M 대학교 | 이혼 | 3 |
 | Tom | 47 | 수석 시스템 분석가 | 18 | BS - 경영학 | 퍼듀 대학교 | 이혼 | 4 |
+
+> **학력 약어 설명:** MBA = 경영학 석사 · BS = 이학사 · MS = 이학 석사 · AAS = 응용과학 준학사 · MIS = 경영정보시스템 · CIS = 컴퓨터 정보시스템 · DP = 데이터 처리
 
 ---
 
