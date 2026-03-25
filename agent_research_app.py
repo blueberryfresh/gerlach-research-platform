@@ -557,14 +557,18 @@ def render_post_survey():
                 )
                 st.warning(T["survey_warning_unanswered"].format(nums_str=nums_str))
             else:
-                agents['survey'].conduct_survey(
+                survey = agents['survey'].conduct_survey(
                     user_id=st.session_state.user_id,
                     session_id=st.session_state.current_session.session_id,
                     dialogue_id=dialogue_id,
                     responses=responses
                 )
+                # Write survey_id back to session so CSV export and reports can find it
+                session = st.session_state.current_session
+                session.survey_id = survey.survey_id
+                session.save(DATA_DIR)
                 agents['supervisor'].advance_stage(
-                    st.session_state.current_session.session_id,
+                    session.session_id,
                     WorkflowStage.COMPLETED
                 )
                 st.rerun()

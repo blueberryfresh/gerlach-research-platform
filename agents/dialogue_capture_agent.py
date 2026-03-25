@@ -79,7 +79,7 @@ class DialogueCaptureAgent:
             return False
         
         dialogue.end_dialogue()
-        dialogue.save(self.data_dir)
+        dialogue.save(self.data_dir, force_github=True)
         
         # Remove from active dialogues
         if dialogue_id in self.active_dialogues:

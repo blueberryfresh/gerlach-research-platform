@@ -215,8 +215,10 @@ class SummaryReportAgent:
                 interpretation = "High" if score > 60 else "Low" if score < 40 else "Average"
                 md += f"| {trait.title()} | {score:.1f} | {interpretation} |\n"
             
-            md += f"\n**Gerlach Personality Type:** {report.gerlach_type.replace('_', ' ').title()}\n"
-            md += f"**Classification Confidence:** {assessment.gerlach_confidence:.1f}%\n\n"
+            gerlach_label = report.gerlach_type.replace('_', ' ').title() if report.gerlach_type else "Not classified"
+            md += f"\n**Gerlach Personality Type:** {gerlach_label}\n"
+            conf = assessment.gerlach_confidence
+            md += f"**Classification Confidence:** {f'{conf:.1f}%' if isinstance(conf, (int, float)) else 'N/A'}\n\n"
             
             # Personality visualization (text-based)
             md += "### Personality Profile Visualization\n\n"
@@ -505,7 +507,7 @@ class SummaryReportAgent:
             html += f"""
     <div class="section">
         <h2>Big Five Personality Profile</h2>
-        <p><strong>Gerlach Type:</strong> {report.gerlach_type.replace('_', ' ').title()}</p>
+        <p><strong>Gerlach Type:</strong> {report.gerlach_type.replace('_', ' ').title() if report.gerlach_type else 'Not classified'}</p>
 """
             
             for trait, score in report.big5_scores.items():

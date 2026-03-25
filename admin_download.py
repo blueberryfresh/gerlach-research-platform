@@ -380,17 +380,18 @@ def export_to_csv():
             try:
                 with open(session_file, 'r', encoding='utf-8') as f:
                     session = json.load(f)
-                
+
                 user_id = session.get('user_id', '')
                 session_id = session.get('session_id', '')
-                created_at = session.get('created_at', '')
+                created_at = session.get('started_at', '')        # field is started_at, not created_at
                 current_stage = session.get('current_stage', '')
-                task_name = session.get('task_name', '')
-                llm_personality = session.get('llm_personality', '')
-                
-                assessment_id = session.get('assessment_id', '')
+                metadata = session.get('metadata', {})
+                task_name = metadata.get('assigned_task', '')      # stored in metadata
+                llm_personality = metadata.get('assigned_personality', '')  # stored in metadata
+
+                assessment_id = session.get('big5_assessment_id', '')  # field is big5_assessment_id
                 o, c, e, a, n, gerlach_type, gerlach_conf = '', '', '', '', '', '', ''
-                
+
                 if assessment_id:
                     assessment_file = data_dir / "assessments" / f"{assessment_id}.json"
                     if assessment_file.exists():
@@ -403,21 +404,37 @@ def export_to_csv():
                             n = assessment.get('neuroticism', '')
                             gerlach_type = assessment.get('gerlach_type', '')
                             gerlach_conf = assessment.get('gerlach_confidence', '')
-                
-                dialogue_id = session.get('dialogue_id', '')
+
+                # dialogue_records is a list; use the first entry
+                dialogue_records = session.get('dialogue_records', [])
+                dialogue_id = dialogue_records[0] if dialogue_records else ''
                 message_count, duration = '', ''
-                
+
                 if dialogue_id:
                     dialogue_file = data_dir / "dialogues" / f"{dialogue_id}.json"
                     if dialogue_file.exists():
                         with open(dialogue_file, 'r', encoding='utf-8') as df:
                             dialogue = json.load(df)
-                            message_count = len(dialogue.get('messages', []))
+                            message_count = dialogue.get('user_message_count', len(dialogue.get('messages', [])))
                             duration = dialogue.get('duration_seconds', '')
-                
-                survey_id = session.get('survey_id', '')
-                survey_completed = 'Yes' if survey_id else 'No'
-                
+
+                # Check surveys directory for this session (survey_id on session may not be set)
+                survey_completed = 'No'
+                if session.get('survey_id'):
+                    survey_completed = 'Yes'
+                else:
+                    surveys_dir = data_dir / "surveys"
+                    if surveys_dir.exists():
+                        for sf in surveys_dir.glob("*.json"):
+                            try:
+                                with open(sf, 'r', encoding='utf-8') as svf:
+                                    sv = json.load(svf)
+                                if sv.get('session_id') == session_id:
+                                    survey_completed = 'Yes'
+                                    break
+                            except Exception:
+                                pass
+
                 csv_writer.writerow([
                     user_id, session_id, created_at, current_stage,
                     o, c, e, a, n, gerlach_type, gerlach_conf,
@@ -593,10 +610,17 @@ def admin_page():
                             session_data.setdefault('completed_stages', [])
                         with open(session_file, 'w', encoding='utf-8') as f:
                             json.dump(session_data, f, indent=2)
+                        # Sync to GitHub so the change survives a server restart
+                        try:
+                            from github_storage import get_storage
+                            get_storage().write(f"sessions/{selected['file']}", session_data)
+                            github_note = "GitHub synced ✓"
+                        except Exception:
+                            github_note = "⚠️ GitHub sync failed — change is local only"
                         st.success(
                             f"✅ **{selected['user_id']}** moved to "
                             f"**{STAGE_LABELS.get(target_stage, target_stage)}**. "
-                            "They will see the new stage on their next page load."
+                            f"They will see the new stage on their next page load. ({github_note})"
                         )
                     except Exception as e:
                         st.error(f"Failed to update session: {e}")
