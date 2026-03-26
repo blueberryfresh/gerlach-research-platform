@@ -383,6 +383,21 @@ def render_task_selection():
         st.session_state.current_dialogue_id = dialogue.dialogue_id
         st.session_state.current_messages = []
 
+        # Generate welcome message now so the dialogue page never blocks on an API call
+        personality = agents['llm_manager'].get_personality(assigned_personality)
+        task_context = _read_task_content(assigned_task) or assigned_task.replace(".pdf", "")
+        if assigned_task == NOBLE_TASK:
+            task_context += _NOBLE_TABLE_INSTRUCTION
+        try:
+            welcome = personality.chat(
+                [{"role": "user", "content": T["task_dial_welcome_prompt"]}],
+                task_context=task_context,
+                _monitor_meta={"session_id": session.session_id, "dialogue_id": dialogue.dialogue_id},
+            )
+            agents['dialogue'].record_message(dialogue.dialogue_id, "assistant", welcome)
+        except Exception:
+            pass  # Dialogue page will retry if messages is still empty
+
         session.dialogue_records.append(dialogue.dialogue_id)
         session.save(DATA_DIR)
 
