@@ -395,6 +395,7 @@ def render_task_selection():
 
 def render_task_dialogue():
     """Stage 4: Task Dialogue — task description at top, chat in middle, complete at bottom."""
+    st.write("[DEBUG] render_task_dialogue() entered")
     dialogue_id = st.session_state.current_dialogue_id
 
     # ── Render page structure FIRST — no early returns before this point ───────
