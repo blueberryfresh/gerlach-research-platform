@@ -488,7 +488,11 @@ def render_task_dialogue():
             agents['dialogue'].record_message(dialogue_id, "user", user_input)
 
             personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
-            messages = [{"role": m.role, "content": m.content} for m in dialogue.messages]
+            # Anthropic requires messages to start with role "user".
+            # The welcome message is role "assistant", so drop any leading assistant turns.
+            all_msgs = [{"role": m.role, "content": m.content} for m in dialogue.messages]
+            first_user = next((i for i, m in enumerate(all_msgs) if m["role"] == "user"), None)
+            messages = all_msgs[first_user:] if first_user is not None else all_msgs
 
             # Reuse cached extraction — already handles tables and plain text
             task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
