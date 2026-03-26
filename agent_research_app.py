@@ -693,6 +693,8 @@ div[role="radiogroup"] > label > div:nth-child(2) {
             if not st.session_state.get('current_dialogue_id') and session.dialogue_records:
                 st.session_state.current_dialogue_id = session.dialogue_records[-1]
 
+            st.caption(f"[DEBUG] stage={session.current_stage.value!r}, dialogue_id={st.session_state.get('current_dialogue_id', 'None')!r}, dialogue_records={getattr(session, 'dialogue_records', 'N/A')}")
+
             if session.current_stage == WorkflowStage.BIG5_ASSESSMENT:
                 render_big5_assessment()
             elif session.current_stage == WorkflowStage.TASK_SELECTION:
