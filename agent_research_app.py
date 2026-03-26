@@ -399,96 +399,115 @@ def render_task_dialogue():
     # ── Render page structure FIRST — no early returns before this point ───────
     st.header(T["task_dial_header"])
 
-    dialogue = agents['dialogue'].get_dialogue(dialogue_id)
+    # [DIAGNOSTIC] Wrap entire body to surface any silent failure that produces a blank page
+    try:
+        if not dialogue_id:
+            _sess = st.session_state.get('current_session')
+            st.error("[DIAGNOSTIC] dialogue_id is None — session has no linked dialogue.")
+            st.code(
+                f"session_id: {getattr(_sess, 'session_id', 'N/A')}\n"
+                f"current_stage: {getattr(getattr(_sess, 'current_stage', None), 'value', 'N/A')}\n"
+                f"dialogue_records: {getattr(_sess, 'dialogue_records', 'N/A')}",
+                language="text"
+            )
+            return
 
-    if not dialogue:
-        st.error(T["task_dial_err_not_found"])
-        return
+        dialogue = agents['dialogue'].get_dialogue(dialogue_id)
 
-    # ── Task description (always accessible at top) ─────────────────────────
-    with st.expander(T["task_dial_expander"], expanded=True):
-        task_content = _read_task_content(dialogue.task_name)
-        formatted    = _format_task_content(dialogue.task_name, task_content)
-        if formatted:
-            st.markdown(formatted, unsafe_allow_html=True)
-        else:
-            st.info(T["task_dial_no_desc"])
+        if not dialogue:
+            st.error(T["task_dial_err_not_found"])
+            st.code(f"[DIAGNOSTIC] dialogue_id attempted: {dialogue_id!r}", language="text")
+            return
 
-    st.markdown("---")
-
-    # ── Collaboration guide (above dialogue) ─────────────────────────────────
-    with st.expander(T["task_dial_guide_expander"], expanded=True):
-        st.markdown(T["task_dial_guide"])
-
-    st.markdown("---")
-
-    # Safety net: write static welcome if task setup somehow left messages empty
-    if len(dialogue.messages) == 0:
-        agents['dialogue'].record_message(dialogue_id, "assistant", T["task_dial_welcome_text"])
-        st.rerun()
-
-    # ── Dialogue history (at bottom, just above complete button) ────────────
-    for msg in dialogue.messages:
-        if msg.role == "user":
-            st.chat_message("user").write(msg.content)
-        else:
-            st.chat_message("assistant", avatar="🤖").write(msg.content)
-
-    # ── Complete Task button (last on page) ───────────────────────────────────
-    st.markdown("---")
-    st.warning(T["task_dial_warning"])
-
-    is_noble = dialogue.task_name == NOBLE_TASK
-    if is_noble:
-        confirmed = st.checkbox(
-            T["task_dial_noble_confirm_label"],
-            key=f"noble_confirm_{dialogue_id}"
-        )
-    else:
-        confirmed = True
-
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.metric(T["task_dial_messages_metric"], dialogue.total_messages)
-    with col2:
-        if st.button(T["task_dial_complete_btn"], use_container_width=True, type="primary"):
-            if dialogue.user_message_count == 0:
-                st.toast(T["task_dial_no_messages_warning"])
-                st.warning(T["task_dial_no_messages_warning"])
-            elif not confirmed:
-                st.toast(T["task_dial_noble_confirm_warning"])
-                st.warning(T["task_dial_noble_confirm_warning"])
+        # ── Task description (always accessible at top) ─────────────────────
+        with st.expander(T["task_dial_expander"], expanded=True):
+            task_content = _read_task_content(dialogue.task_name)
+            formatted    = _format_task_content(dialogue.task_name, task_content)
+            if formatted:
+                st.markdown(formatted, unsafe_allow_html=True)
             else:
-                agents['dialogue'].end_dialogue(dialogue_id)
-                agents['supervisor'].advance_stage(
-                    st.session_state.current_session.session_id,
-                    WorkflowStage.TASK_RESPONSE
-                )
-                st.rerun()
+                st.info(T["task_dial_no_desc"])
 
-    # ── Chat input (Streamlit renders this sticky at viewport bottom) ────────
-    user_input = st.chat_input(T["task_dial_chat_placeholder"])
+        st.markdown("---")
 
-    if user_input:
-        agents['dialogue'].record_message(dialogue_id, "user", user_input)
+        # ── Collaboration guide (above dialogue) ─────────────────────────────
+        with st.expander(T["task_dial_guide_expander"], expanded=True):
+            st.markdown(T["task_dial_guide"])
 
-        personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
-        messages = [{"role": m.role, "content": m.content} for m in dialogue.messages]
+        st.markdown("---")
 
-        # Reuse cached extraction — already handles tables and plain text
-        task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
-        if dialogue.task_name == NOBLE_TASK:
-            task_context += _NOBLE_TABLE_INSTRUCTION
-
-        try:
-            with st.spinner(T["task_dial_spinner_thinking"]):
-                response = personality.chat(messages, task_context=task_context,
-                    _monitor_meta={"session_id": st.session_state.current_session.session_id,
-                                   "dialogue_id": dialogue_id})
-            agents['dialogue'].record_message(dialogue_id, "assistant", response)
+        # Safety net: write static welcome if task setup somehow left messages empty
+        if len(dialogue.messages) == 0:
+            agents['dialogue'].record_message(dialogue_id, "assistant", T["task_dial_welcome_text"])
             st.rerun()
-        except Exception:
-            st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
+
+        # ── Dialogue history (at bottom, just above complete button) ─────────
+        for msg in dialogue.messages:
+            if msg.role == "user":
+                st.chat_message("user").write(msg.content)
+            else:
+                st.chat_message("assistant", avatar="🤖").write(msg.content)
+
+        # ── Complete Task button (last on page) ───────────────────────────────
+        st.markdown("---")
+        st.warning(T["task_dial_warning"])
+
+        is_noble = dialogue.task_name == NOBLE_TASK
+        if is_noble:
+            confirmed = st.checkbox(
+                T["task_dial_noble_confirm_label"],
+                key=f"noble_confirm_{dialogue_id}"
+            )
+        else:
+            confirmed = True
+
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.metric(T["task_dial_messages_metric"], dialogue.total_messages)
+        with col2:
+            if st.button(T["task_dial_complete_btn"], use_container_width=True, type="primary"):
+                if dialogue.user_message_count == 0:
+                    st.toast(T["task_dial_no_messages_warning"])
+                    st.warning(T["task_dial_no_messages_warning"])
+                elif not confirmed:
+                    st.toast(T["task_dial_noble_confirm_warning"])
+                    st.warning(T["task_dial_noble_confirm_warning"])
+                else:
+                    agents['dialogue'].end_dialogue(dialogue_id)
+                    agents['supervisor'].advance_stage(
+                        st.session_state.current_session.session_id,
+                        WorkflowStage.TASK_RESPONSE
+                    )
+                    st.rerun()
+
+        # ── Chat input (Streamlit renders this sticky at viewport bottom) ────
+        user_input = st.chat_input(T["task_dial_chat_placeholder"])
+
+        if user_input:
+            agents['dialogue'].record_message(dialogue_id, "user", user_input)
+
+            personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
+            messages = [{"role": m.role, "content": m.content} for m in dialogue.messages]
+
+            # Reuse cached extraction — already handles tables and plain text
+            task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
+            if dialogue.task_name == NOBLE_TASK:
+                task_context += _NOBLE_TABLE_INSTRUCTION
+
+            try:
+                with st.spinner(T["task_dial_spinner_thinking"]):
+                    response = personality.chat(messages, task_context=task_context,
+                        _monitor_meta={"session_id": st.session_state.current_session.session_id,
+                                       "dialogue_id": dialogue_id})
+                agents['dialogue'].record_message(dialogue_id, "assistant", response)
+                st.rerun()
+            except Exception:
+                st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
+
+    except Exception as _diag_e:
+        import traceback as _diag_tb
+        st.error(f"[DIAGNOSTIC] {type(_diag_e).__name__} in render_task_dialogue: {_diag_e}")
+        st.code(_diag_tb.format_exc(), language="text")
 
 
 def render_post_survey():
@@ -686,7 +705,9 @@ div[role="radiogroup"] > label > div:nth-child(2) {
                 render_completed()
         except Exception as _e:
             import traceback as _tb
-            st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
+            _stage = getattr(getattr(st.session_state.get('current_session'), 'current_stage', None), 'value', 'unknown')
+            _dlg   = st.session_state.get('current_dialogue_id', 'not set')
+            st.error(f"[DIAGNOSTIC] {type(_e).__name__} at stage={_stage}, dialogue_id={_dlg!r}: {_e}")
             st.code(_tb.format_exc(), language="text")
 
 
