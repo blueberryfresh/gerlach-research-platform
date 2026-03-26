@@ -688,6 +688,10 @@ div[role="radiogroup"] > label > div:nth-child(2) {
                 st.session_state.current_session = fresh
             session = st.session_state.current_session
 
+            # Restore current_dialogue_id from session if lost (e.g. page refresh, browser resume)
+            if not st.session_state.get('current_dialogue_id') and session.dialogue_records:
+                st.session_state.current_dialogue_id = session.dialogue_records[-1]
+
             if session.current_stage == WorkflowStage.BIG5_ASSESSMENT:
                 render_big5_assessment()
             elif session.current_stage == WorkflowStage.TASK_SELECTION:
