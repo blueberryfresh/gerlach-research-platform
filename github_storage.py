@@ -157,7 +157,7 @@ def sync_from_github(data_dir: Path) -> int:
     for directory in [
         "sessions", "assessments", "dialogues",
         "task_responses/noble", "task_responses/popcorn",
-        "surveys", "reports",
+        "surveys", "reports", "api_logs",
     ]:
         for item in storage.list_dir(directory):
             if item.get("type") != "file" or not item["name"].endswith(".json"):
