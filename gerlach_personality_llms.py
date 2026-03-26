@@ -5,6 +5,7 @@ Implements the four personality types: Average, Role model, Self-centred, Reserv
 
 import anthropic
 import os
+import time
 from typing import List, Dict, Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -106,15 +107,52 @@ class GerlachPersonalityLLM:
             return lang_instruction + "\n\n" + task_section + self.get_personality_prompt()
         return task_section + self.get_personality_prompt()
 
-    def chat(self, messages: List[Dict[str, str]], task_context: str = "", max_tokens: int = 500) -> str:
-        """Send messages to Claude and get response."""
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=max_tokens,
-            system=self.build_system_prompt(task_context),
-            messages=messages
-        )
-        return response.content[0].text
+    def chat(
+        self,
+        messages: List[Dict[str, str]],
+        task_context: str = "",
+        max_tokens: int = 500,
+        _monitor_meta: Optional[Dict] = None,
+    ) -> str:
+        """Send messages to Claude and get response. Logs every call to api_monitor."""
+        import api_monitor
+        meta = _monitor_meta or {}
+        call_type = "welcome" if (len(messages) == 1) else "chat"
+
+        t0 = time.monotonic()
+        try:
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                system=self.build_system_prompt(task_context),
+                messages=messages,
+            )
+            latency_ms = (time.monotonic() - t0) * 1000
+            usage = getattr(response, "usage", None)
+            api_monitor.log_call(
+                personality=self.get_personality_name(),
+                call_type=call_type,
+                success=True,
+                latency_ms=latency_ms,
+                input_tokens=getattr(usage, "input_tokens", 0) or 0,
+                output_tokens=getattr(usage, "output_tokens", 0) or 0,
+                session_id=meta.get("session_id", ""),
+                dialogue_id=meta.get("dialogue_id", ""),
+            )
+            return response.content[0].text
+        except Exception as exc:
+            latency_ms = (time.monotonic() - t0) * 1000
+            api_monitor.log_call(
+                personality=self.get_personality_name(),
+                call_type=call_type,
+                success=False,
+                latency_ms=latency_ms,
+                error_type=type(exc).__name__,
+                error_msg=str(exc)[:300],
+                session_id=meta.get("session_id", ""),
+                dialogue_id=meta.get("dialogue_id", ""),
+            )
+            raise
 
 
 class AveragePersonalityLLM(GerlachPersonalityLLM):
