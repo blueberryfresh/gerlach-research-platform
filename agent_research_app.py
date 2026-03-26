@@ -383,20 +383,8 @@ def render_task_selection():
         st.session_state.current_dialogue_id = dialogue.dialogue_id
         st.session_state.current_messages = []
 
-        # Generate welcome message now so the dialogue page never blocks on an API call
-        personality = agents['llm_manager'].get_personality(assigned_personality)
-        task_context = _read_task_content(assigned_task) or assigned_task.replace(".pdf", "")
-        if assigned_task == NOBLE_TASK:
-            task_context += _NOBLE_TABLE_INSTRUCTION
-        try:
-            welcome = personality.chat(
-                [{"role": "user", "content": T["task_dial_welcome_prompt"]}],
-                task_context=task_context,
-                _monitor_meta={"session_id": session.session_id, "dialogue_id": dialogue.dialogue_id},
-            )
-            agents['dialogue'].record_message(dialogue.dialogue_id, "assistant", welcome)
-        except Exception:
-            pass  # Dialogue page will retry if messages is still empty
+        # Write static welcome message — no API call needed, text is predetermined
+        agents['dialogue'].record_message(dialogue.dialogue_id, "assistant", T["task_dial_welcome_text"])
 
         session.dialogue_records.append(dialogue.dialogue_id)
         session.save(DATA_DIR)
@@ -441,26 +429,10 @@ def render_task_dialogue():
 
     st.markdown("---")
 
-    # Generate a one-time welcome message when the dialogue is brand new
-    if len(dialogue.messages) == 0 and agents['llm_ready']:
-        personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
-        task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
-        if dialogue.task_name == NOBLE_TASK:
-            task_context += _NOBLE_TABLE_INSTRUCTION
-        welcome_prompt = [{
-            "role": "user",
-            "content": T["task_dial_welcome_prompt"]
-        }]
-        try:
-            with st.spinner(T["task_dial_spinner_welcome"]):
-                welcome = personality.chat(welcome_prompt, task_context=task_context,
-                    _monitor_meta={"session_id": st.session_state.current_session.session_id,
-                                   "dialogue_id": dialogue_id})
-            agents['dialogue'].record_message(dialogue_id, "assistant", welcome)
-            st.rerun()
-        except Exception as e:
-            st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
-            # No return — page continues rendering so participant isn't stuck on a blank screen
+    # Safety net: write static welcome if task setup somehow left messages empty
+    if len(dialogue.messages) == 0:
+        agents['dialogue'].record_message(dialogue_id, "assistant", T["task_dial_welcome_text"])
+        st.rerun()
 
     # ── Dialogue history (at bottom, just above complete button) ────────────
     for msg in dialogue.messages:

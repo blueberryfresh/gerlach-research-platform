@@ -123,6 +123,10 @@ EN = {
         "Did you get a chance to read the task carefully? How do you think we should go about solving this problem? "
         "Let's collaborate and share our thoughts with each other. But first, please take a moment to read the guidelines below carefully."
     ),
+    "task_dial_welcome_text": (
+        "Did you get a chance to read the task carefully? How do you think we should go about solving this problem? "
+        "Let's collaborate and share our thoughts with each other. But first, please take a moment to read the guidelines below carefully."
+    ),
     "task_dial_guide_expander": "ℹ️ How to Collaborate (click to expand / collapse)",
     "task_dial_guide": """\
 **How to Collaborate:**
@@ -654,6 +658,10 @@ KO = {
     "task_dial_spinner_thinking":"LLM 파트너가 생각 중입니다…",
     "task_dial_welcome_prompt": (
         "아래 텍스트를 한 글자도 바꾸지 말고 정확히 그대로 출력하세요:\n\n"
+        "과제를 잘 읽어보셨나요? 그럼 당신은 이 문제를 어떻게 풀어나가면 좋을까요? "
+        "저와 같이 협력해서 서로의 의견을 나누죠. 하지만 먼저, 아래의 가이드라인을 차분히 읽어보세요"
+    ),
+    "task_dial_welcome_text": (
         "과제를 잘 읽어보셨나요? 그럼 당신은 이 문제를 어떻게 풀어나가면 좋을까요? "
         "저와 같이 협력해서 서로의 의견을 나누죠. 하지만 먼저, 아래의 가이드라인을 차분히 읽어보세요"
     ),
