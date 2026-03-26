@@ -501,8 +501,10 @@ def render_task_dialogue():
                                        "dialogue_id": dialogue_id})
                 agents['dialogue'].record_message(dialogue_id, "assistant", response)
                 st.rerun()
-            except Exception:
+            except Exception as _llm_e:
+                import traceback as _llm_tb
                 st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
+                st.code(f"[DIAGNOSTIC] {type(_llm_e).__name__}: {_llm_e}\n\n{_llm_tb.format_exc()}", language="text")
 
     except Exception as _diag_e:
         import traceback as _diag_tb
