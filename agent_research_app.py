@@ -438,7 +438,9 @@ def render_task_dialogue():
         }]
         try:
             with st.spinner(T["task_dial_spinner_welcome"]):
-                welcome = personality.chat(welcome_prompt, task_context=task_context)
+                welcome = personality.chat(welcome_prompt, task_context=task_context,
+                    _monitor_meta={"session_id": st.session_state.current_session.session_id,
+                                   "dialogue_id": dialogue_id})
             agents['dialogue'].record_message(dialogue_id, "assistant", welcome)
             st.rerun()
         except Exception as e:
@@ -500,7 +502,9 @@ def render_task_dialogue():
 
         try:
             with st.spinner(T["task_dial_spinner_thinking"]):
-                response = personality.chat(messages, task_context=task_context)
+                response = personality.chat(messages, task_context=task_context,
+                    _monitor_meta={"session_id": st.session_state.current_session.session_id,
+                                   "dialogue_id": dialogue_id})
             agents['dialogue'].record_message(dialogue_id, "assistant", response)
             st.rerun()
         except Exception:

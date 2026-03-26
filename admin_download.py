@@ -464,7 +464,7 @@ def admin_page():
     
     st.markdown("---")
     
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test", "🤖 API Monitor"])
     
     with tab1:
         st.header("Download All Research Data")
@@ -668,6 +668,138 @@ def admin_page():
                 else:
                     st.error("❌ Write failed — token likely missing **Contents: Read and write** permission. "
                              "Regenerate the token and ensure that permission is set.")
+
+
+    with tab6:
+        _render_api_monitor()
+
+
+def _render_api_monitor():
+    """API Monitor tab — LLM call health, latency, tokens, errors."""
+    import api_monitor
+
+    st.header("🤖 Anthropic API Monitor")
+
+    hours = st.select_slider(
+        "Time window",
+        options=[1, 3, 6, 12, 24, 48, 72],
+        value=24,
+        format_func=lambda h: f"Last {h}h",
+    )
+
+    if st.button("🔄 Refresh", key="api_monitor_refresh"):
+        st.rerun()
+
+    stats = api_monitor.get_stats(hours=hours)
+
+    # ── Health banner ────────────────────────────────────────────────────────
+    health = stats["health"]
+    if stats["total_calls"] == 0:
+        st.info(f"No API calls recorded in the last {hours}h. Make sure the app has been used.")
+    elif health == "green":
+        st.success(f"✅ API Healthy — {stats['success_rate_pct']}% success rate over last {hours}h")
+    elif health == "yellow":
+        st.warning(f"⚠️ Degraded — {stats['success_rate_pct']}% success rate over last {hours}h")
+    else:
+        st.error(f"🔴 Unhealthy — {stats['success_rate_pct']}% success rate over last {hours}h")
+
+    st.markdown("---")
+
+    # ── Key metrics ──────────────────────────────────────────────────────────
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Total Calls", stats["total_calls"])
+    c2.metric("Successful", stats["success_calls"])
+    c3.metric("Failed", stats["fail_calls"],
+              delta=f"-{stats['fail_calls']}" if stats["fail_calls"] else None,
+              delta_color="inverse")
+    c4.metric("Avg Latency",
+              f"{stats['avg_latency_ms']:.0f} ms" if stats["avg_latency_ms"] is not None else "—")
+    c5.metric("Total Tokens", f"{stats['total_tokens']:,}" if stats["total_tokens"] else "0")
+
+    st.markdown("---")
+
+    # ── Token breakdown ──────────────────────────────────────────────────────
+    col_in, col_out = st.columns(2)
+    col_in.metric("Input Tokens",  f"{stats['total_input_tokens']:,}")
+    col_out.metric("Output Tokens", f"{stats['total_output_tokens']:,}")
+
+    if stats.get("p95_latency_ms") is not None:
+        st.caption(f"p95 latency: {stats['p95_latency_ms']:.0f} ms")
+
+    st.markdown("---")
+
+    # ── Calls per hour chart ─────────────────────────────────────────────────
+    if stats["calls_by_hour"]:
+        st.subheader("Calls per Hour")
+        try:
+            import pandas as pd
+            chart_df = pd.DataFrame(
+                {"API Calls": list(stats["calls_by_hour"].values())},
+                index=list(stats["calls_by_hour"].keys()),
+            )
+            st.bar_chart(chart_df)
+        except ImportError:
+            # Fallback: text-based bar
+            max_count = max(stats["calls_by_hour"].values()) or 1
+            for hour_label, count in stats["calls_by_hour"].items():
+                bar = "█" * int(count / max_count * 20)
+                st.text(f"{hour_label}  {bar} {count}")
+
+    # ── Error breakdown ──────────────────────────────────────────────────────
+    if stats["errors_by_type"]:
+        st.markdown("---")
+        st.subheader("Errors by Type")
+        for etype, count in sorted(stats["errors_by_type"].items(), key=lambda x: -x[1]):
+            st.markdown(f"- **{etype}**: {count} occurrence{'s' if count != 1 else ''}")
+
+    # ── Recent failures ──────────────────────────────────────────────────────
+    if stats["recent_errors"]:
+        st.markdown("---")
+        st.subheader(f"Recent Failures (last {len(stats['recent_errors'])})")
+        for err in stats["recent_errors"]:
+            ts = err.get("ts", "")[:19].replace("T", " ")
+            personality = err.get("personality", "?")
+            etype = err.get("error_type") or "Unknown"
+            emsg = err.get("error_msg") or ""
+            latency = err.get("latency_ms", "?")
+            with st.expander(f"❌  {ts}  ·  {personality}  ·  {etype}"):
+                st.markdown(f"**Time:** {ts}")
+                st.markdown(f"**Personality:** {personality}")
+                st.markdown(f"**Call type:** {err.get('call_type', '?')}")
+                st.markdown(f"**Latency:** {latency} ms")
+                st.markdown(f"**Session:** `{err.get('session_id', '—')}`")
+                st.markdown(f"**Dialogue:** `{err.get('dialogue_id', '—')}`")
+                if emsg:
+                    st.code(emsg)
+    else:
+        st.success("No failures recorded in this window.")
+
+    # ── Raw log download ─────────────────────────────────────────────────────
+    st.markdown("---")
+    st.subheader("Download Raw Logs")
+    log_dir = Path(__file__).parent / "research_data" / "api_logs"
+    if log_dir.exists():
+        log_files = sorted(log_dir.glob("*.json"), reverse=True)
+        if log_files:
+            selected_log = st.selectbox(
+                "Select log file",
+                [f.name for f in log_files],
+            )
+            log_path = log_dir / selected_log
+            try:
+                raw = log_path.read_text(encoding="utf-8")
+                st.download_button(
+                    label=f"⬇️ Download {selected_log}",
+                    data=raw,
+                    file_name=selected_log,
+                    mime="application/json",
+                )
+            except Exception as e:
+                st.error(f"Could not read log file: {e}")
+        else:
+            st.info("No log files yet.")
+    else:
+        st.info("Log directory not created yet — logs appear after the first API call.")
 
 
 if __name__ == "__main__":
