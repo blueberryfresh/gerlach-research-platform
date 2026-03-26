@@ -470,7 +470,10 @@ def render_task_dialogue():
         st.metric(T["task_dial_messages_metric"], dialogue.total_messages)
     with col2:
         if st.button(T["task_dial_complete_btn"], use_container_width=True, type="primary"):
-            if not confirmed:
+            if dialogue.user_message_count == 0:
+                st.toast(T["task_dial_no_messages_warning"])
+                st.warning(T["task_dial_no_messages_warning"])
+            elif not confirmed:
                 st.toast(T["task_dial_noble_confirm_warning"])
                 st.warning(T["task_dial_noble_confirm_warning"])
             else:

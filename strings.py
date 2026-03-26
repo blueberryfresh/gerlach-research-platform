@@ -171,6 +171,7 @@ EN = {
     # ── Noble Industries confirmation (shown above Complete Task button) ──────
     "task_dial_noble_confirm_label":   "I confirm that the AI Partner has presented the final agreed layoff order table above, and I agree with the order shown.",
     "task_dial_noble_confirm_warning": "Please check the box above to confirm the agreed layoff order before completing the task.",
+    "task_dial_no_messages_warning":   "Please interact with the AI Partner before completing the task. Type a message in the chat box below to get started.",
 
     # ── Post-Task Survey ──────────────────────────────────────────────────────
     "survey_header":      "End of Study Survey",
@@ -704,6 +705,7 @@ KO = {
     # ── Noble Industries confirmation (shown above Complete Task button) ──────
     "task_dial_noble_confirm_label":   "AI 파트너가 위에 최종 합의된 해고 순서 표를 제시했음을 확인하며, 표시된 순서에 동의합니다.",
     "task_dial_noble_confirm_warning": "과제를 완료하기 전에 위의 체크박스를 선택하여 합의된 해고 순서를 확인해 주세요.",
+    "task_dial_no_messages_warning":   "과제를 완료하기 전에 AI 파트너와 대화를 나눠 주세요. 아래 채팅창에 메시지를 입력하여 시작하세요.",
 
     # ── Post-Task Survey ──────────────────────────────────────────────────────
     "survey_header":      "사후 설문지",
