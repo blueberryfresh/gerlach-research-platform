@@ -489,12 +489,13 @@ def render_task_dialogue():
             agents['dialogue'].record_message(dialogue_id, "user", user_input)
 
             personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
-            # Build messages from the local dialogue object + the new user input just recorded.
-            # dialogue.messages may be a stale copy (record_message updates a separate instance),
-            # so we append user_input explicitly to guarantee it is present.
-            # Anthropic also requires messages[0].role == "user", so strip any leading assistant turns.
-            all_msgs = [{"role": m.role, "content": m.content} for m in dialogue.messages]
-            all_msgs.append({"role": "user", "content": user_input})
+            # Reload dialogue after record_message to get the authoritative current state.
+            # This works whether the dialogue lives in active_dialogues (same object, already
+            # updated) or was loaded from disk (record_message saved the new message to disk,
+            # reload picks it up). Avoids duplicating the user message.
+            # Anthropic also requires messages[0].role == "user", so strip leading assistant turns.
+            fresh = agents['dialogue'].get_dialogue(dialogue_id)
+            all_msgs = [{"role": m.role, "content": m.content} for m in (fresh or dialogue).messages]
             first_user = next((i for i, m in enumerate(all_msgs) if m["role"] == "user"), None)
             messages = all_msgs[first_user:] if first_user is not None else all_msgs
 
@@ -513,7 +514,9 @@ def render_task_dialogue():
             except Exception as _llm_e:
                 import traceback as _llm_tb
                 st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
-                st.code(f"[DIAGNOSTIC] {type(_llm_e).__name__}: {_llm_e}\n\n{_llm_tb.format_exc()}", language="text")
+                st.write(f"**[DIAGNOSTIC] {type(_llm_e).__name__}:** {_llm_e}")
+                st.write(f"**messages sent ({len(messages)}):** {messages}")
+                st.code(_llm_tb.format_exc(), language="text")
 
     except Exception as _diag_e:
         import traceback as _diag_tb
