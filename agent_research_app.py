@@ -489,9 +489,12 @@ def render_task_dialogue():
             agents['dialogue'].record_message(dialogue_id, "user", user_input)
 
             personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
-            # Anthropic requires messages to start with role "user".
-            # The welcome message is role "assistant", so drop any leading assistant turns.
+            # Build messages from the local dialogue object + the new user input just recorded.
+            # dialogue.messages may be a stale copy (record_message updates a separate instance),
+            # so we append user_input explicitly to guarantee it is present.
+            # Anthropic also requires messages[0].role == "user", so strip any leading assistant turns.
             all_msgs = [{"role": m.role, "content": m.content} for m in dialogue.messages]
+            all_msgs.append({"role": "user", "content": user_input})
             first_user = next((i for i, m in enumerate(all_msgs) if m["role"] == "user"), None)
             messages = all_msgs[first_user:] if first_user is not None else all_msgs
 
