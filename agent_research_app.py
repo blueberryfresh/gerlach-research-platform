@@ -395,31 +395,22 @@ def render_task_selection():
 
 def render_task_dialogue():
     """Stage 4: Task Dialogue — task description at top, chat in middle, complete at bottom."""
-    st.write("[DEBUG] render_task_dialogue() entered")
     dialogue_id = st.session_state.current_dialogue_id
 
     # ── Render page structure FIRST — no early returns before this point ───────
     st.header(T["task_dial_header"])
 
-    # [DIAGNOSTIC] Wrap entire body to surface any silent failure that produces a blank page
+    if not dialogue_id:
+        st.error(T["task_dial_err_not_found"])
+        return
+
+    dialogue = agents['dialogue'].get_dialogue(dialogue_id)
+
+    if not dialogue:
+        st.error(T["task_dial_err_not_found"])
+        return
+
     try:
-        if not dialogue_id:
-            _sess = st.session_state.get('current_session')
-            st.error("[DIAGNOSTIC] dialogue_id is None — session has no linked dialogue.")
-            st.code(
-                f"session_id: {getattr(_sess, 'session_id', 'N/A')}\n"
-                f"current_stage: {getattr(getattr(_sess, 'current_stage', None), 'value', 'N/A')}\n"
-                f"dialogue_records: {getattr(_sess, 'dialogue_records', 'N/A')}",
-                language="text"
-            )
-            return
-
-        dialogue = agents['dialogue'].get_dialogue(dialogue_id)
-
-        if not dialogue:
-            st.error(T["task_dial_err_not_found"])
-            st.code(f"[DIAGNOSTIC] dialogue_id attempted: {dialogue_id!r}", language="text")
-            return
 
         # ── Task description (always accessible at top) ─────────────────────
         with st.expander(T["task_dial_expander"], expanded=True):
@@ -511,17 +502,11 @@ def render_task_dialogue():
                                        "dialogue_id": dialogue_id})
                 agents['dialogue'].record_message(dialogue_id, "assistant", response)
                 st.rerun()
-            except Exception as _llm_e:
-                import traceback as _llm_tb
+            except Exception:
                 st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
-                st.write(f"**[DIAGNOSTIC] {type(_llm_e).__name__}:** {_llm_e}")
-                st.write(f"**messages sent ({len(messages)}):** {messages}")
-                st.code(_llm_tb.format_exc(), language="text")
 
-    except Exception as _diag_e:
-        import traceback as _diag_tb
-        st.error(f"[DIAGNOSTIC] {type(_diag_e).__name__} in render_task_dialogue: {_diag_e}")
-        st.code(_diag_tb.format_exc(), language="text")
+    except Exception:
+        st.error(T["task_dial_err_not_found"])
 
 
 def render_post_survey():
@@ -705,8 +690,6 @@ div[role="radiogroup"] > label > div:nth-child(2) {
             if not st.session_state.get('current_dialogue_id') and session.dialogue_records:
                 st.session_state.current_dialogue_id = session.dialogue_records[-1]
 
-            st.caption(f"[DEBUG] stage={session.current_stage.value!r}, dialogue_id={st.session_state.get('current_dialogue_id', 'None')!r}, dialogue_records={getattr(session, 'dialogue_records', 'N/A')}")
-
             if session.current_stage == WorkflowStage.BIG5_ASSESSMENT:
                 render_big5_assessment()
             elif session.current_stage == WorkflowStage.TASK_SELECTION:
@@ -719,12 +702,8 @@ div[role="radiogroup"] > label > div:nth-child(2) {
                 render_post_survey()
             elif session.current_stage == WorkflowStage.COMPLETED:
                 render_completed()
-        except Exception as _e:
-            import traceback as _tb
-            _stage = getattr(getattr(st.session_state.get('current_session'), 'current_stage', None), 'value', 'unknown')
-            _dlg   = st.session_state.get('current_dialogue_id', 'not set')
-            st.error(f"[DIAGNOSTIC] {type(_e).__name__} at stage={_stage}, dialogue_id={_dlg!r}: {_e}")
-            st.code(_tb.format_exc(), language="text")
+        except Exception:
+            st.error(T.get("task_dial_err_llm", "Something went wrong. Please refresh the page."))
 
 
 if __name__ == "__main__":
