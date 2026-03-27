@@ -449,6 +449,109 @@ def export_to_csv():
     csv_buffer.seek(0)
     return csv_buffer.getvalue()
 
+def _render_activity_log():
+    """Activity Log tab — who used the app, when, and their current status."""
+    st.header("Participant Activity Log")
+    st.caption("All sessions sorted by most recent login first. Refresh to update.")
+
+    if st.button("🔄 Refresh", key="activity_refresh"):
+        st.rerun()
+
+    sessions_dir = DATA_DIR / "sessions"
+    if not sessions_dir.exists():
+        st.info("No participant sessions recorded yet.")
+        return
+
+    rows = []
+    for session_file in sessions_dir.glob("*.json"):
+        try:
+            with open(session_file, 'r', encoding='utf-8') as f:
+                s = json.load(f)
+            started_at = s.get('started_at', '')
+            ended_at   = s.get('ended_at', '')
+            stage      = s.get('current_stage', '')
+            metadata   = s.get('metadata', {})
+            rows.append({
+                'user_id':     s.get('user_id', '—'),
+                'session_id':  s.get('session_id', '—'),
+                'started_at':  started_at,
+                'ended_at':    ended_at,
+                'stage':       stage,
+                'task':        metadata.get('assigned_task', '—')
+                                   .replace('NOBLE INDUSTRIES for Big5.pdf', 'Noble Industries')
+                                   .replace('Popcorn Brain Task for Big5-rev2.pdf', 'Popcorn Brain'),
+                'personality': metadata.get('assigned_personality', '—'),
+                'completed':   stage == 'completed',
+            })
+        except Exception:
+            continue
+
+    if not rows:
+        st.info("No sessions found.")
+        return
+
+    # Sort newest first
+    rows.sort(key=lambda r: r['started_at'], reverse=True)
+
+    # ── Summary metrics ───────────────────────────────────────────────────────
+    total      = len(rows)
+    completed  = sum(1 for r in rows if r['completed'])
+    in_progress = total - completed
+    latest     = rows[0]
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Total Sessions",   total)
+    c2.metric("Completed",        completed)
+    c3.metric("In Progress",      in_progress)
+
+    st.markdown("---")
+
+    # ── Most recent participant banner ────────────────────────────────────────
+    st.subheader("Most Recent Participant")
+    ts = latest['started_at']
+    ts_display = ts[:19].replace('T', ' ') if len(ts) >= 19 else ts or '—'
+    ended_display = latest['ended_at'][:19].replace('T', ' ') if latest['ended_at'] else '—'
+    st.success(
+        f"**{latest['user_id']}**  ·  "
+        f"Logged in: {ts_display}  ·  "
+        f"Stage: {latest['stage']}  ·  "
+        f"{'✅ Completed at ' + ended_display if latest['completed'] else '🔄 In progress'}"
+    )
+
+    st.markdown("---")
+
+    # ── Full table ────────────────────────────────────────────────────────────
+    st.subheader("All Sessions")
+
+    STAGE_LABELS = {
+        'registration':    '1 — Registration',
+        'big5_assessment': '2 — Big5 Assessment',
+        'task_selection':  '3 — Task Selection',
+        'task_dialogue':   '4 — Task Dialogue',
+        'task_response':   '5 — Task Response',
+        'post_survey':     '6 — Post Survey',
+        'completed':       '7 — Completed ✅',
+    }
+
+    for i, r in enumerate(rows, 1):
+        ts       = r['started_at'][:19].replace('T', ' ') if len(r['started_at']) >= 19 else r['started_at'] or '—'
+        ended    = r['ended_at'][:19].replace('T', ' ')   if r['ended_at'] else '—'
+        stage_lbl = STAGE_LABELS.get(r['stage'], r['stage'])
+        icon     = '✅' if r['completed'] else '🔄'
+
+        with st.expander(f"{icon}  #{i}  {r['user_id']}   ·   {ts}   ·   {stage_lbl}"):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown(f"**User ID:** {r['user_id']}")
+                st.markdown(f"**Logged in:** {ts}")
+                st.markdown(f"**Ended:** {ended}")
+                st.markdown(f"**Stage:** {stage_lbl}")
+            with col2:
+                st.markdown(f"**Task:** {r['task']}")
+                st.markdown(f"**AI Personality:** {r['personality']}")
+                st.markdown(f"**Session ID:** `{r['session_id']}`")
+
+
 def admin_page():
     """Main admin download page"""
     
@@ -464,8 +567,11 @@ def admin_page():
     
     st.markdown("---")
     
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test", "🤖 API Monitor"])
+    tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["👥 Activity Log", "📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test", "🤖 API Monitor"])
     
+    with tab0:
+        _render_activity_log()
+
     with tab1:
         st.header("Download All Research Data")
         st.write("Download a ZIP file containing all participant data from all folders.")
