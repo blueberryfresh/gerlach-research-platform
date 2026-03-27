@@ -53,7 +53,7 @@ st.set_page_config(
 @st.cache_resource
 def init_agents():
     """Initialize all agents. Bump _cache_version when LLM classes change to force reinitialization."""
-    _cache_version = "2026-03-26-b"  # noqa: F841
+    _cache_version = "2026-03-27"  # noqa: F841
     supervisor = SupervisorAgent(DATA_DIR)  # creates local subdirectories
     sync_from_github(DATA_DIR)             # restore any GitHub data on fresh deploy
     assessment_agent = Big5AssessmentAgent(DATA_DIR)
