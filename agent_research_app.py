@@ -690,7 +690,14 @@ div[role="radiogroup"] > label > div:nth-child(2) {
             if not st.session_state.get('current_dialogue_id') and session.dialogue_records:
                 st.session_state.current_dialogue_id = session.dialogue_records[-1]
 
-            if session.current_stage == WorkflowStage.BIG5_ASSESSMENT:
+            if session.current_stage == WorkflowStage.REGISTRATION:
+                # Session exists but stuck at registration — advance to Big5 automatically.
+                # This happens when GitHub restores a stale session file that was saved
+                # before advance_stage() persisted the BIG5_ASSESSMENT transition.
+                agents['supervisor'].advance_stage(session.session_id, WorkflowStage.BIG5_ASSESSMENT)
+                st.session_state.current_session = agents['supervisor'].get_session(session.session_id)
+                render_big5_assessment()
+            elif session.current_stage == WorkflowStage.BIG5_ASSESSMENT:
                 render_big5_assessment()
             elif session.current_stage == WorkflowStage.TASK_SELECTION:
                 render_task_selection()
@@ -702,8 +709,11 @@ div[role="radiogroup"] > label > div:nth-child(2) {
                 render_post_survey()
             elif session.current_stage == WorkflowStage.COMPLETED:
                 render_completed()
-        except Exception:
+        except Exception as _exc:
+            import traceback as _tb
             st.error(T.get("task_dial_err_llm", "Something went wrong. Please refresh the page."))
+            with st.expander("🔧 Error details (for researcher)"):
+                st.code(_tb.format_exc())
 
 
 if __name__ == "__main__":
