@@ -477,33 +477,36 @@ def render_task_dialogue():
         user_input = st.chat_input(T["task_dial_chat_placeholder"])
 
         if user_input:
-            agents['dialogue'].record_message(dialogue_id, "user", user_input)
-
-            personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
-            # Reload dialogue after record_message to get the authoritative current state.
-            # This works whether the dialogue lives in active_dialogues (same object, already
-            # updated) or was loaded from disk (record_message saved the new message to disk,
-            # reload picks it up). Avoids duplicating the user message.
-            # Anthropic also requires messages[0].role == "user", so strip leading assistant turns.
-            fresh = agents['dialogue'].get_dialogue(dialogue_id)
-            all_msgs = [{"role": m.role, "content": m.content} for m in (fresh or dialogue).messages]
-            first_user = next((i for i, m in enumerate(all_msgs) if m["role"] == "user"), None)
-            messages = all_msgs[first_user:] if first_user is not None else all_msgs
-
-            # Reuse cached extraction — already handles tables and plain text
-            task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
-            if dialogue.task_name == NOBLE_TASK:
-                task_context += _NOBLE_TABLE_INSTRUCTION
-
-            try:
-                with st.spinner(T["task_dial_spinner_thinking"]):
-                    response = personality.chat(messages, task_context=task_context,
-                        _monitor_meta={"session_id": st.session_state.current_session.session_id,
-                                       "dialogue_id": dialogue_id})
-                agents['dialogue'].record_message(dialogue_id, "assistant", response)
-                st.rerun()
-            except Exception:
+            if not agents['llm_ready']:
                 st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
+            else:
+                agents['dialogue'].record_message(dialogue_id, "user", user_input)
+
+                personality = agents['llm_manager'].get_personality(dialogue.llm_personality)
+                # Reload dialogue after record_message to get the authoritative current state.
+                # This works whether the dialogue lives in active_dialogues (same object, already
+                # updated) or was loaded from disk (record_message saved the new message to disk,
+                # reload picks it up). Avoids duplicating the user message.
+                # Anthropic also requires messages[0].role == "user", so strip leading assistant turns.
+                fresh = agents['dialogue'].get_dialogue(dialogue_id)
+                all_msgs = [{"role": m.role, "content": m.content} for m in (fresh or dialogue).messages]
+                first_user = next((i for i, m in enumerate(all_msgs) if m["role"] == "user"), None)
+                messages = all_msgs[first_user:] if first_user is not None else all_msgs
+
+                # Reuse cached extraction — already handles tables and plain text
+                task_context = _read_task_content(dialogue.task_name) or dialogue.task_name.replace(".pdf", "")
+                if dialogue.task_name == NOBLE_TASK:
+                    task_context += _NOBLE_TABLE_INSTRUCTION
+
+                try:
+                    with st.spinner(T["task_dial_spinner_thinking"]):
+                        response = personality.chat(messages, task_context=task_context,
+                            _monitor_meta={"session_id": st.session_state.current_session.session_id,
+                                           "dialogue_id": dialogue_id})
+                    agents['dialogue'].record_message(dialogue_id, "assistant", response)
+                    st.rerun()
+                except Exception:
+                    st.error(T.get("task_dial_err_llm", "The AI assistant could not be reached. Please refresh the page to try again."))
 
     except Exception:
         st.error(T["task_dial_err_not_found"])
