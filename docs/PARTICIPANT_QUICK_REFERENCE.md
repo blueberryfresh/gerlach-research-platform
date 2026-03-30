@@ -22,6 +22,14 @@
 
 ---
 
+## If you see duplicate or repeated messages in the chat
+
+- This is a display issue only — your conversation data is saved correctly
+- Press **🔄 Reload Page** in the left sidebar
+- Your conversation will reload cleanly and you can continue from where you left off
+
+---
+
 ## If the AI assistant is not responding
 
 - Wait a few seconds, then press **🔄 Reload Page** in the sidebar
@@ -61,6 +69,14 @@
 4. 브라우저 탭을 닫으세요
 
 **재개 방법:** 연구 링크로 다시 접속한 후 **세션 재개** 탭을 클릭하고 참여자 ID를 입력하세요.
+
+---
+
+## 채팅창에 메시지가 중복되어 보이는 경우
+
+- 이는 화면 표시 문제일 뿐이며, 대화 데이터는 올바르게 저장되어 있습니다
+- 왼쪽 사이드바에서 **🔄 페이지 새로고침**을 누르세요
+- 대화 내용이 정상적으로 다시 로드되며 중단한 곳에서 계속 진행할 수 있습니다
 
 ---
 
