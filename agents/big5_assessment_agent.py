@@ -152,10 +152,9 @@ class Big5AssessmentAgent:
         self.logger = logging.getLogger(__name__)
     
     def get_assessment_items(self) -> List[Dict]:
-        """Get all assessment items in the active language."""
-        source = self.ASSESSMENT_ITEMS_KO if strings.APP_LANG == "ko" else self.ASSESSMENT_ITEMS
+        """Get all assessment items — Korean branch always returns Korean items."""
         all_items = []
-        for trait, items in source.items():
+        for trait, items in self.ASSESSMENT_ITEMS_KO.items():
             for item in items:
                 all_items.append({**item, "trait": trait})
         return all_items
