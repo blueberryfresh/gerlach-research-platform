@@ -108,8 +108,101 @@ if 'show_admin' not in st.session_state:
 if 'show_save_exit' not in st.session_state:
     st.session_state.show_save_exit = False
 
+if 'ko_consent_given' not in st.session_state:
+    st.session_state.ko_consent_given = False
+
+if 'ko_consent_declined' not in st.session_state:
+    st.session_state.ko_consent_declined = False
+
 
 _STAGE_LABELS = T["stage_labels"]
+
+
+def render_korean_welcome():
+    """Korean-only: IRB consent/welcome page shown before registration."""
+    st.markdown("## 연구 참여 안내 및 동의서")
+
+    # Declined state — show exit message only
+    if st.session_state.ko_consent_declined:
+        st.error(
+            "연구 참여에 동의하지 않으셨습니다. 참여해 주셔서 감사합니다. "
+            "브라우저 창을 닫으셔도 됩니다."
+        )
+        return
+
+    welcome_text = """
+안녕하세요. 본 연구에 참여해주셔서 감사합니다.
+연구 참가 시작 전, 본 연구에 대해 설명드리도록 하겠습니다.
+
+**1. 연구의 배경과 목적**
+본 연구는 인공지능(AI) 챗봇과의 협업 과제 수행 경험이 사용자의 만족도 및 결과물 인식에 어떠한 영향을 미치는지를 탐색하는 연구입니다.
+
+**2. 연구대상자의 참여 기간, 절차 및 소요 시간**
+연구 시작일로부터 일주일간 참여가능하며, 소요 시간은 약 20~30분 정도입니다. 모든 절차는 참여자 본인의 기기를 통해 온라인으로 진행되며, 모집 공고에 안내된 QR코드 또는 링크를 통해 접속하여 순서에 따라 진행됩니다.
+
+**3. 연구대상자에게 예상되는 위험 및 이익**
+본 연구는 온라인 설문 응답 및 AI 챗봇과의 협업 과제 수행으로만 구성되어 있으며, 참여자에게 신체적·심리적 위험은 없습니다. 다만 설문 응답 및 과제 수행에 약 20~30분의 시간이 소요되는 점이 경미한 불편함으로 작용할 수 있습니다. 또한 참여자 개인에게 직접적인 이익은 없습니다. 다만 본 연구의 결과는 사용자 맞춤형 AI 시스템 설계 및 인간-AI 협업 경험 개선을 위한 학술적 기초 자료로 활용될 것으로 기대됩니다.
+
+**4. 연구참여에 대한 보상**
+본 연구 참여를 완료한 참여자 전원에게 스타벅스 1만원 모바일 기프티콘이 제공됩니다. 참여자는 언제든지 불이익 없이 참여를 중단할 수 있습니다. 단, 보상은 설문 및 과제 수행을 모두 완료한 참여자에 한하여 지급되며, 중도 철회 시에는 보상이 제공되지 않습니다. 보상 지급을 위해 참여자의 핸드폰 번호를 별도로 수집하며, 보상 지급 후 즉시 폐기됩니다. 해당 정보는 보상 지급 외의 목적으로는 사용되지 않으며, 연구 데이터와 분리하여 관리됩니다.
+
+**5. 연구 참여에 따른 손실에 대한 보상**
+본 설문 연구에 참가에 따른 예상되는 위험, 손실 및 상해는 없습니다. 추가적인 정보나 설명을 원할 경우를 대비하여 담당 연구원의 전화 번호 및 이메일이 제공될 것입니다.
+
+**6. 참여 철회 및 중지 보장**
+귀하는 본 연구 참가 진행 도중 언제든지 중도에 참여를 철회 및 중지 할 수 있으며, 이로 인한 어떠한 불이익도 없습니다. 참여 포기 시, 개인의 자료 및 정보는 즉시 삭제되며, 자료가 보관되거나 분석에 사용되지 않습니다. 또한 중도 철회 시에는 보상이 지급되지 않습니다.
+
+**7. 개인정보와 비밀 보장에 관한 사항**
+연구에서는 개인을 특정할 수 있는 정보 (이름, 주민등록번호 등)을 수집하지 않으며, 통계적인 분석에 사용될 간단한 인구통계학적 정보 성별과 전공만을 수집합니다.
+
+수집된 데이터는 연구책임자 관리 하에 컴퓨터의 데이터 파일(엑셀 혹은 SPSS 데이터 파일 형식)로 연구실 내 통계 자료 분석용 컴퓨터에 저장될 것이며, 연구가 종료 된 후 3년 보관 후 관련 전자 문서는 영구 삭제할 것이며, 인쇄 문서는 파기할 것입니다. 또한 통계 분석은 연구실 내에서만 이루어집니다. 이 연구에서 얻어진 개인 정보가 학회지나 학회에 공개 될 때 응답자의 이름과 다른 개인 정보는 사용되지 않습니다. 연구대상자의 참여가 중지되거나 철회될 경우 연구대상자의 자료 및 정보는 즉시 폐기될 것입니다.
+
+보상 지급을 위해 필요한 최소한의 개인정보(예: 연락처)는 별도로 수집되며, 연구 데이터와 분리하여 관리됩니다. 해당 정보는 보상 지급 목적에 한하여 사용되며, 연구책임자만 접근 가능하도록 제한됩니다. 보상 지급이 완료된 후 즉시 삭제되며, 연구 데이터와 결합되어 분석에 사용되지 않습니다.
+
+**8. 연구 문의**
+본 연구와 관련하여 문의할 사항이 있으시면 아래 연락처로 연락주시기 바랍니다.
+
+- **연구담당자 연락처**
+  연세대학교 경영대 연구실 (010-3460-0613)
+  연구자 임일 (il.im@yonsei.ac.kr)
+
+- **연구대상자 권리 정보에 관한 문의처**
+  연세대학교 생명윤리위원회 (02-2123-5143)
+"""
+    st.markdown(welcome_text)
+
+    st.markdown("---")
+    st.markdown(
+        "위의 연구 설명을 아래 항목에 동의하는지, 혹은 동의하지 않는지 응답해 주십시오.  \n"
+        "**모든 항목에 동의하셔야 연구에 참여하실 수 있습니다.**"
+    )
+    st.markdown("")
+
+    consent1 = st.radio(
+        "본 연구의 연구 목적을 이해하고 연구에 참여하기를 희망합니다.",
+        options=["동의한다", "동의하지 않는다"],
+        index=None,
+        horizontal=True,
+        key="ko_consent_item1",
+    )
+    consent2 = st.radio(
+        "연구 도중 자유롭게 참여를 철회할 수 있음을 이해하였습니다.",
+        options=["동의한다", "동의하지 않는다"],
+        index=None,
+        horizontal=True,
+        key="ko_consent_item2",
+    )
+
+    st.markdown("")
+    if st.button("확인", type="primary", use_container_width=False):
+        if consent1 is None or consent2 is None:
+            st.warning("모든 항목에 응답해 주십시오.")
+        elif consent1 == "동의하지 않는다" or consent2 == "동의하지 않는다":
+            st.session_state.ko_consent_declined = True
+            st.rerun()
+        else:
+            st.session_state.ko_consent_given = True
+            st.rerun()
 
 
 def render_registration():
@@ -680,7 +773,10 @@ div[role="radiogroup"] > label > div:nth-child(2) {
 
     # Main content
     if not st.session_state.current_session:
-        render_registration()
+        if APP_LANG == "ko" and not st.session_state.ko_consent_given:
+            render_korean_welcome()
+        else:
+            render_registration()
     else:
         try:
             # Always reload session from supervisor to get authoritative current_stage
