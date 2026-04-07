@@ -773,7 +773,7 @@ div[role="radiogroup"] > label > div:nth-child(2) {
 
     # Main content
     if not st.session_state.current_session:
-        if APP_LANG == "ko" and not st.session_state.ko_consent_given:
+        if not st.session_state.ko_consent_given:
             render_korean_welcome()
         else:
             render_registration()
