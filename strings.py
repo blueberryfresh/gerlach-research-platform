@@ -19,7 +19,7 @@ def _get_app_lang() -> str:
     except Exception:
         return "en"
 
-APP_LANG = _get_app_lang()
+APP_LANG = "ko"
 
 # =============================================================================
 # ENGLISH STRINGS
