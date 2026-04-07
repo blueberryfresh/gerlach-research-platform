@@ -10,7 +10,7 @@ import uuid
 import logging
 
 from .data_models import Big5Assessment
-from strings import APP_LANG
+import strings
 
 
 class Big5AssessmentAgent:
@@ -153,7 +153,7 @@ class Big5AssessmentAgent:
     
     def get_assessment_items(self) -> List[Dict]:
         """Get all assessment items in the active language."""
-        source = self.ASSESSMENT_ITEMS_KO if APP_LANG == "ko" else self.ASSESSMENT_ITEMS
+        source = self.ASSESSMENT_ITEMS_KO if strings.APP_LANG == "ko" else self.ASSESSMENT_ITEMS
         all_items = []
         for trait, items in source.items():
             for item in items:
