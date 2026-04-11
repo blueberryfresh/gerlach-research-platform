@@ -36,7 +36,10 @@ def check_password():
     password = st.text_input("Password", type="password", key="admin_password_input")
 
     if st.button("Login"):
-        if password == _get_admin_password():
+        admin_pw = _get_admin_password()
+        if not admin_pw:
+            st.error("❌ Admin password is not configured on this server.")
+        elif password == admin_pw:
             st.session_state.admin_authenticated = True
             st.rerun()
         else:
