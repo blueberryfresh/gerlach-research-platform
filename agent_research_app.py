@@ -567,6 +567,7 @@ def render_task_dialogue():
                     st.rerun()
 
         # ── Chat input (Streamlit renders this sticky at viewport bottom) ────
+        st.caption(T["task_dial_offtopic_reminder"])
         user_input = st.chat_input(T["task_dial_chat_placeholder"])
 
         if user_input:
@@ -675,9 +676,72 @@ def render_post_survey():
                 st.rerun()
 
 
+def _render_phone_collection():
+    """Phone number input for Starbucks gift card compensation."""
+    import json as _json
+    session = st.session_state.current_session
+    comp_file = DATA_DIR / "compensation" / f"{session.session_id}.json"
+
+    # Already submitted — show confirmation without re-rendering the form
+    if st.session_state.get("phone_submitted") or comp_file.exists():
+        st.session_state["phone_submitted"] = True
+        st.success(T["completed_phone_submitted"])
+        return
+
+    st.caption(T["completed_phone_notice"])
+    phone = st.text_input(
+        T["completed_phone_label"],
+        placeholder=T["completed_phone_placeholder"],
+        key="phone_input",
+    )
+    if st.button(T["completed_phone_btn"], key="phone_submit_btn"):
+        if not phone.strip():
+            st.warning(T["completed_phone_empty_warn"])
+        else:
+            comp_dir = DATA_DIR / "compensation"
+            comp_dir.mkdir(parents=True, exist_ok=True)
+            comp_data = {
+                "user_id": session.user_id,
+                "session_id": session.session_id,
+                "phone_number": phone.strip(),
+                "submitted_at": datetime.now().isoformat(),
+            }
+            with open(comp_file, "w", encoding="utf-8") as f:
+                _json.dump(comp_data, f, indent=2, ensure_ascii=False)
+            try:
+                from github_storage import get_storage
+                get_storage().write(f"compensation/{session.session_id}.json", comp_data)
+            except Exception:
+                pass
+            st.session_state["phone_submitted"] = True
+            st.rerun()
+
+
 def render_completed():
     """Stage 6: Session Completed"""
     st.header(T["completed_header"])
+
+    # Reveal participant and LLM personality types
+    try:
+        session = st.session_state.current_session
+        llm_key = session.metadata.get("assigned_personality", "")
+        llm_type = llm_key.replace("_", " ").title() if llm_key else ""
+
+        participant_type = ""
+        if session.big5_assessment_id and agents.get("big5"):
+            assessment = agents["big5"].get_assessment(session.big5_assessment_id)
+            if assessment and assessment.gerlach_type:
+                participant_type = assessment.gerlach_type.replace("_", " ").title()
+
+        if participant_type and llm_type and T.get("completed_personality_reveal"):
+            st.info(T["completed_personality_reveal"].format(
+                participant_type=participant_type,
+                llm_type=llm_type,
+            ))
+    except Exception:
+        pass
+
+    _render_phone_collection()
 
     st.success(T["completed_success"])
 

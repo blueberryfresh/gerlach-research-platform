@@ -116,6 +116,7 @@ EN = {
     "task_dial_messages_metric":"Messages exchanged",
     "task_dial_complete_btn":   "Complete Task",
     "task_dial_chat_placeholder":"Type your message to the LLM Partner…",
+    "task_dial_offtopic_reminder":"⚠️ The AI can only discuss topics directly related to the assigned task.",
     "task_dial_spinner_welcome":"LLM Partner is preparing…",
     "task_dial_spinner_thinking":"LLM Partner is thinking…",
     "task_dial_welcome_prompt": (
@@ -193,6 +194,16 @@ EN = {
     # ── Completed ─────────────────────────────────────────────────────────────
     "completed_header":         "✅ Session Completed!",
     "completed_success":        "Thank you for participating in this research study!",
+    "completed_personality_reveal": (
+        "Your personality type was classified as **{participant_type}**, "
+        "and the AI you interacted with during the task was designed with the **{llm_type}** type."
+    ),
+    "completed_phone_notice":    "This information will be used solely for compensation purposes and will be permanently deleted after the gift card is sent.",
+    "completed_phone_label":     "Phone number",
+    "completed_phone_placeholder": "e.g. 010-xxxx-xxxx",
+    "completed_phone_btn":       "Submit",
+    "completed_phone_empty_warn":"Please enter your phone number.",
+    "completed_phone_submitted": "Your phone number has been recorded. Your Starbucks gift card will be sent shortly. Thank you!",
     "completed_close_browser":  "You may now close the browser.",
     "completed_gen_btn":        "Generate Comprehensive Report",
     "completed_gen_spinner":    "Generating your research report...",
@@ -240,6 +251,7 @@ EN = {
 
     # ── LLM language instruction (empty for English) ──────────────────────────
     "llm_language_instruction": "",
+    "llm_offtopic_response":    "I can only discuss topics related to the assigned task in this study.",
 
     # ── Task content (Popcorn Brain) ──────────────────────────────────────────
     "task_popcorn_md": """\
@@ -654,16 +666,19 @@ KO = {
     "task_dial_messages_metric": "교환된 메시지 수",
     "task_dial_complete_btn":    "과제 완료",
     "task_dial_chat_placeholder":"LLM 파트너에게 메시지를 입력하세요…",
+    "task_dial_offtopic_reminder":"⚠️ 본 실험에서는 주어진 과제와 관련된 내용에 대해서만 논의할 수 있습니다.",
     "task_dial_spinner_welcome": "LLM 파트너가 준비 중입니다…",
     "task_dial_spinner_thinking":"LLM 파트너가 생각 중입니다…",
     "task_dial_welcome_prompt": (
         "아래 텍스트를 한 글자도 바꾸지 말고 정확히 그대로 출력하세요:\n\n"
         "과제를 잘 읽어보셨나요? 그럼 당신은 이 문제를 어떻게 풀어나가면 좋을까요? "
-        "저와 같이 협력해서 서로의 의견을 나누죠. 하지만 먼저, 아래의 가이드라인을 차분히 읽어보세요"
+        "저와 같이 협력해서 서로의 의견을 나누죠. 하지만 먼저, 아래의 가이드라인을 차분히 읽어보세요. "
+        "본 실험에서는 주어진 과제와 관련된 내용에 대해서만 논의할 수 있습니다. 실험주제와 다른 논의는 하지않습니다."
     ),
     "task_dial_welcome_text": (
         "과제를 잘 읽어보셨나요? 그럼 당신은 이 문제를 어떻게 풀어나가면 좋을까요? "
-        "저와 같이 협력해서 서로의 의견을 나누죠. 하지만 먼저, 아래의 가이드라인을 차분히 읽어보세요"
+        "저와 같이 협력해서 서로의 의견을 나누죠. 하지만 먼저, 아래의 가이드라인을 차분히 읽어보세요. "
+        "본 실험에서는 주어진 과제와 관련된 내용에 대해서만 논의할 수 있습니다. 실험주제와 다른 논의는 하지않습니다."
     ),
     "task_dial_guide_expander": "ℹ️ 협업 방법 (클릭하여 펼치기 / 접기)",
     "task_dial_guide": """\
@@ -730,7 +745,17 @@ KO = {
 
     # ── Completed ─────────────────────────────────────────────────────────────
     "completed_header":          "✅ 세션 완료!",
-    "completed_success":         "이 연구에 참여해 주셔서 감사합니다!",
+    "completed_success":         "연구에 참여해 주셔서 감사합니다!",
+    "completed_personality_reveal": (
+        "귀하의 성격 유형은 **{participant_type}** 유형으로 분류되었으며, "
+        "과제 수행 중 귀하가 상호작용한 AI는 **{llm_type}** 유형으로 설계되었습니다."
+    ),
+    "completed_phone_notice":    "해당 정보는 보상 지급 목적으로만 사용되며 보상 지급 후 즉시 폐기됩니다.",
+    "completed_phone_label":     "전화번호",
+    "completed_phone_placeholder": "예) 010-xxxx-xxxx",
+    "completed_phone_btn":       "제출",
+    "completed_phone_empty_warn":"전화번호를 입력해 주세요.",
+    "completed_phone_submitted": "전화번호가 기록되었습니다. 스타벅스 기프트 카드를 곧 보내드리겠습니다. 감사합니다!",
     "completed_close_browser":   "이제 브라우저를 닫아도 됩니다.",
     "completed_gen_btn":         "종합 보고서 생성",
     "completed_gen_spinner":     "연구 보고서를 생성하는 중...",
@@ -784,6 +809,7 @@ KO = {
         "If the participant writes in English, still respond entirely in Korean.\n"
         "모든 응답은 반드시 한국어로만 작성하십시오."
     ),
+    "llm_offtopic_response":    "본 실험에서는 주어진 과제와 관련된 내용에 대해서만 논의할 수 있습니다.",
 
     # ── Task content (Popcorn Brain — Korean) ─────────────────────────────────
     "task_popcorn_md": """\

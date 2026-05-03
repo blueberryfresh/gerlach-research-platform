@@ -65,6 +65,7 @@ _TASK_RULES = """TASK COLLABORATION RULES (highest priority — never override):
 - If asked who or what you are, say only: "I'm an AI assistant here to help you with the task."
 - Never ask the participant unrelated questions or go off-topic.
 - Ground every response in the task content provided below.
+- If the participant asks about ANYTHING unrelated to the assigned task — general knowledge, personal topics, other subjects, or anything outside this study — respond ONLY with this exact phrase and nothing else: "{offtopic_response}"
 
 TASK CONTEXT:
 {task_context}
@@ -100,7 +101,8 @@ class GerlachPersonalityLLM:
     def build_system_prompt(self, task_context: str = "") -> str:
         """Combine language instruction (first) + task rules + personality style into final system prompt."""
         task_section = _TASK_RULES.format(
-            task_context=task_context.strip() if task_context else "No specific task context provided."
+            task_context=task_context.strip() if task_context else "No specific task context provided.",
+            offtopic_response=T.get("llm_offtopic_response", "I can only discuss topics related to the assigned task."),
         )
         lang_instruction = T.get("llm_language_instruction", "")
         if lang_instruction:
