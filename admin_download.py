@@ -555,23 +555,173 @@ def _render_activity_log():
                 st.markdown(f"**Session ID:** `{r['session_id']}`")
 
 
+def _render_personality_task_distribution():
+    """Always-visible dashboard section — each participant's Gerlach type + assigned task,
+    plus running totals/balance so the facilitator can see study progress at a glance."""
+    st.header("🧬 Personality Type & Task Assignment")
+    st.caption(
+        "Each participant's Gerlach personality type (from the Big5 assessment) and the task "
+        "they were randomly assigned to, with running totals so you can monitor balance across "
+        "the study. This section is always shown, independent of the tabs below."
+    )
+
+    if st.button("🔄 Refresh", key="pers_task_refresh"):
+        st.rerun()
+
+    sessions_dir = DATA_DIR / "sessions"
+    if not sessions_dir.exists():
+        st.info("No participant sessions recorded yet.")
+        return
+
+    TASK_LABELS = {
+        "NOBLE INDUSTRIES for Big5.pdf": "Noble Industries",
+        "Popcorn Brain Task for Big5-rev2.pdf": "Popcorn Brain",
+    }
+    # gerlach_type is stored as these snake_case keys (see
+    # agents/big5_assessment_agent.py classify_gerlach_type) — map to display labels.
+    GERLACH_DISPLAY = {
+        "average": "Average",
+        "role_model": "Role Model",
+        "self_centred": "Self-Centred",
+        "reserved": "Reserved",
+    }
+    GERLACH_TYPES = list(GERLACH_DISPLAY.values())
+    TASK_NAMES = list(TASK_LABELS.values())
+
+    rows = []
+    for session_file in sessions_dir.glob("*.json"):
+        try:
+            with open(session_file, 'r', encoding='utf-8') as f:
+                s = json.load(f)
+        except Exception:
+            continue
+
+        metadata = s.get('metadata', {})
+        assigned_task_raw = metadata.get('assigned_task', '')
+        task_label = TASK_LABELS.get(assigned_task_raw, assigned_task_raw or '—')
+
+        gerlach_type = None
+        assessment_id = s.get('big5_assessment_id')
+        if assessment_id:
+            assessment_file = DATA_DIR / "assessments" / f"{assessment_id}.json"
+            if assessment_file.exists():
+                try:
+                    with open(assessment_file, 'r', encoding='utf-8') as af:
+                        raw_type = json.load(af).get('gerlach_type')
+                    if raw_type:
+                        gerlach_type = GERLACH_DISPLAY.get(raw_type, raw_type)
+                except Exception:
+                    pass
+
+        rows.append({
+            'user_id': s.get('user_id', '—'),
+            'gerlach_type': gerlach_type,
+            'task': task_label if assigned_task_raw else None,
+            'stage': s.get('current_stage', ''),
+        })
+
+    if not rows:
+        st.info("No sessions found.")
+        return
+
+    rows.sort(key=lambda r: r['user_id'])
+    assessed_rows = [r for r in rows if r['gerlach_type']]
+    n_assessed, n_total = len(assessed_rows), len(rows)
+
+    st.metric("Participants with a completed Big5 assessment", f"{n_assessed} / {n_total}")
+
+    # ── Counts per personality type ─────────────────────────────────────────
+    st.subheader("Participants per Personality Type")
+    st.caption(
+        "Default target (30 per type) follows the common general-research rule of thumb "
+        "for a reasonably reliable group comparison — adjust it if your analysis plan calls "
+        "for a different number."
+    )
+    target_n = st.number_input(
+        "Target sample size per personality type",
+        min_value=1, value=30, step=1, key="pers_task_target_n",
+    )
+
+    type_counts = {t: 0 for t in GERLACH_TYPES}
+    for r in assessed_rows:
+        type_counts[r['gerlach_type']] = type_counts.get(r['gerlach_type'], 0) + 1
+
+    cols = st.columns(len(type_counts))
+    for col, (ptype, count) in zip(cols, type_counts.items()):
+        with col:
+            st.metric(ptype, count)
+            if count < target_n:
+                st.caption(f"⚠️ {target_n - count} more needed")
+            else:
+                st.caption("✅ Target reached")
+
+    other_types = {t: c for t, c in type_counts.items() if t not in GERLACH_TYPES}
+    if other_types:
+        st.caption(f"Other/unrecognized type labels found: {other_types}")
+
+    st.markdown("---")
+
+    # ── Cross-tab: personality type x task ──────────────────────────────────
+    st.subheader("Personality Type × Task Assignment")
+    crosstab = {t: {task: 0 for task in TASK_NAMES} for t in GERLACH_TYPES}
+    unassigned_task_count = 0
+    for r in assessed_rows:
+        t = r['gerlach_type']
+        crosstab.setdefault(t, {task: 0 for task in TASK_NAMES})
+        if r['task'] in TASK_NAMES:
+            crosstab[t][r['task']] += 1
+        else:
+            unassigned_task_count += 1
+
+    try:
+        import pandas as pd
+        df = pd.DataFrame(crosstab).T
+        df = df.reindex(columns=TASK_NAMES, fill_value=0)
+        df['Total'] = df.sum(axis=1)
+        st.dataframe(df, use_container_width=True)
+    except ImportError:
+        for t, task_counts in crosstab.items():
+            line = "  |  ".join(f"{task}: {task_counts.get(task, 0)}" for task in TASK_NAMES)
+            st.markdown(f"**{t}** — {line}")
+
+    if unassigned_task_count:
+        st.caption(f"{unassigned_task_count} assessed participant(s) have not been assigned a task yet.")
+
+    # ── Full participant list ───────────────────────────────────────────────
+    with st.expander(f"All Participants ({n_total})", expanded=True):
+        for r in rows:
+            icon = '✅' if r['gerlach_type'] else '⏳'
+            gerlach_display = r['gerlach_type'] or 'not yet assessed'
+            task_display = r['task'] or 'not yet assigned'
+            st.markdown(
+                f"{icon} **{r['user_id']}** — Type: `{gerlach_display}`  ·  "
+                f"Task: `{task_display}`  ·  Stage: `{r['stage']}`"
+            )
+
+
 def admin_page():
     """Main admin download page"""
-    
+
     if not check_password():
         return
-    
+
     st.title("📊 Admin Data Download Center")
     st.write("Download participant data and manage research data exports")
-    
+
     if st.button("🔓 Logout"):
         st.session_state.admin_authenticated = False
         st.rerun()
-    
+
     st.markdown("---")
-    
+
+    # Always visible, regardless of which tab is selected below, so the facilitator
+    # can see personality-type/task balance at a glance without extra clicks.
+    _render_personality_task_distribution()
+
+    st.markdown("---")
+
     tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["👥 Activity Log", "📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test", "🤖 API Monitor"])
-    
+
     with tab0:
         _render_activity_log()
 
