@@ -782,6 +782,60 @@ def render_post_survey():
                 st.rerun()
 
 
+def _compute_balance_snapshot():
+    """Build a full Gerlach-type balance snapshot (counts per type, type x task,
+    type x AI-personality) by scanning all saved sessions + their linked assessments.
+
+    Used to include the current study balance in the participant-completion email
+    so investigators see it without logging into the admin dashboard. Returns raw
+    snake_case keys/filenames (same values stored in metadata), not display labels
+    — the caller (email_notifier) maps those to display labels."""
+    import json
+    type_counts = {}
+    task_crosstab = {}
+    personality_crosstab = {}
+
+    sessions_dir = DATA_DIR / "sessions"
+    if not sessions_dir.exists():
+        return type_counts, task_crosstab, personality_crosstab
+
+    for session_file in sessions_dir.glob("*.json"):
+        try:
+            with open(session_file, 'r', encoding='utf-8') as f:
+                s = json.load(f)
+        except Exception:
+            continue
+
+        assessment_id = s.get('big5_assessment_id')
+        if not assessment_id:
+            continue
+        assessment_file = DATA_DIR / "assessments" / f"{assessment_id}.json"
+        if not assessment_file.exists():
+            continue
+        try:
+            with open(assessment_file, 'r', encoding='utf-8') as af:
+                gerlach_type = json.load(af).get('gerlach_type')
+        except Exception:
+            continue
+        if not gerlach_type:
+            continue
+
+        type_counts[gerlach_type] = type_counts.get(gerlach_type, 0) + 1
+
+        metadata = s.get('metadata', {})
+        task = metadata.get('assigned_task')
+        if task:
+            task_crosstab.setdefault(gerlach_type, {})
+            task_crosstab[gerlach_type][task] = task_crosstab[gerlach_type].get(task, 0) + 1
+
+        personality = metadata.get('assigned_personality')
+        if personality:
+            personality_crosstab.setdefault(gerlach_type, {})
+            personality_crosstab[gerlach_type][personality] = personality_crosstab[gerlach_type].get(personality, 0) + 1
+
+    return type_counts, task_crosstab, personality_crosstab
+
+
 def render_re_consent():
     """Stage 6: Re-consent confirmation after post-survey"""
     st.markdown(T["re_consent_intro"])
@@ -808,6 +862,36 @@ def render_re_consent():
                 session.session_id,
                 WorkflowStage.COMPLETED
             )
+
+            # Notify investigators by email, including the current study balance.
+            # A notification failure (e.g. email not configured) must never block
+            # the participant's flow, so any error here is swallowed.
+            try:
+                gerlach_type = None
+                if session.big5_assessment_id:
+                    import json as _json_email
+                    assessment_file = DATA_DIR / "assessments" / f"{session.big5_assessment_id}.json"
+                    if assessment_file.exists():
+                        with open(assessment_file, 'r', encoding='utf-8') as af:
+                            gerlach_type = _json_email.load(af).get('gerlach_type')
+
+                type_counts, task_crosstab, personality_crosstab = _compute_balance_snapshot()
+
+                from utils.email_notifier import EmailNotifier
+                EmailNotifier().send_completion_notification(
+                    user_id=st.session_state.user_id,
+                    session_id=session.session_id,
+                    gerlach_type=gerlach_type,
+                    assigned_task=session.metadata.get('assigned_task'),
+                    assigned_personality=session.metadata.get('assigned_personality'),
+                    consent_withdrawn=withdrawn,
+                    type_counts=type_counts,
+                    task_crosstab=task_crosstab,
+                    personality_crosstab=personality_crosstab,
+                )
+            except Exception:
+                pass
+
             st.rerun()
 
 
