@@ -424,8 +424,98 @@ def _read_task_content(task_name: str) -> str:
             return ""
 
 
+def _load_gerlach_type(session):
+    """Read this participant's already-computed Gerlach type from their saved assessment.
+    Returns None if the assessment can't be found (should not normally happen here,
+    since this is only called after the Big5 assessment stage has completed)."""
+    assessment_id = getattr(session, 'big5_assessment_id', None)
+    if not assessment_id:
+        return None
+    assessment_file = DATA_DIR / "assessments" / f"{assessment_id}.json"
+    if not assessment_file.exists():
+        return None
+    try:
+        import json
+        with open(assessment_file, 'r', encoding='utf-8') as f:
+            return json.load(f).get('gerlach_type')
+    except Exception:
+        return None
+
+
+def _task_counts_for_type(gerlach_type: str) -> dict:
+    """Count how many already-assigned participants sharing this Gerlach type
+    received each task, by scanning saved sessions + their linked assessments."""
+    counts = {t: 0 for t in REQUIRED_TASKS}
+    sessions_dir = DATA_DIR / "sessions"
+    if not sessions_dir.exists():
+        return counts
+
+    import json
+    for session_file in sessions_dir.glob("*.json"):
+        try:
+            with open(session_file, 'r', encoding='utf-8') as f:
+                s = json.load(f)
+        except Exception:
+            continue
+
+        assigned_task = s.get('metadata', {}).get('assigned_task')
+        if assigned_task not in counts:
+            continue
+
+        assessment_id = s.get('big5_assessment_id')
+        if not assessment_id:
+            continue
+        assessment_file = DATA_DIR / "assessments" / f"{assessment_id}.json"
+        if not assessment_file.exists():
+            continue
+        try:
+            with open(assessment_file, 'r', encoding='utf-8') as af:
+                other_type = json.load(af).get('gerlach_type')
+        except Exception:
+            continue
+
+        if other_type == gerlach_type:
+            counts[assigned_task] += 1
+
+    return counts
+
+
+def _assign_balanced_task(session) -> str:
+    """Task assignment that strives for an even Gerlach-type x task split rather than
+    drawing the task independently of personality type.
+
+    Method: for this participant's Gerlach type, count how many prior participants of
+    the SAME type got each task, then assign whichever task is currently under-represented
+    for that type (a "minimization" / covariate-adaptive randomization scheme). If both
+    tasks are equally represented so far, the choice is still made at random — the task
+    is never picked deterministically, so it stays unpredictable in advance.
+
+    Falls back to a plain random draw if the participant's Gerlach type isn't available
+    (e.g. assessment record missing) — this should not normally happen, since task
+    assignment only runs after the Big5 assessment stage has completed and been saved.
+
+    Note: this reads current on-disk state at assignment time and isn't concurrency-safe
+    against two participants completing their assessment at the exact same instant; at
+    this study's expected scale (participants arriving over days/weeks, not simultaneously)
+    that race window is not a practical concern.
+    """
+    gerlach_type = _load_gerlach_type(session)
+    if not gerlach_type:
+        return random.choice(REQUIRED_TASKS)
+
+    counts = _task_counts_for_type(gerlach_type)
+    min_count = min(counts.values())
+    under_represented = [t for t, c in counts.items() if c == min_count]
+    return random.choice(under_represented)
+
+
 def _get_or_assign(session):
-    """Return (task, personality), randomly assigning on first call and persisting in metadata."""
+    """Return (task, personality), assigning on first call and persisting in metadata.
+
+    Task assignment deliberately strives for balance across the Gerlach personality
+    type x task combinations (see _assign_balanced_task) rather than being drawn
+    independently of personality type. AI personality assignment remains a plain
+    uniform random draw, independent of both the task and the participant's Gerlach type."""
     if "assigned_task" not in session.metadata:
         # Validate task files exist before assigning
         if not TASK_FOLDER.exists():
@@ -435,7 +525,7 @@ def _get_or_assign(session):
         if missing:
             return None, None
 
-        session.metadata["assigned_task"] = random.choice(REQUIRED_TASKS)
+        session.metadata["assigned_task"] = _assign_balanced_task(session)
         session.metadata["assigned_personality"] = random.choice(list(PERSONALITY_LABELS.keys()))
         session.save(DATA_DIR)
 
@@ -671,9 +761,38 @@ def render_post_survey():
                 session.save(DATA_DIR)
                 agents['supervisor'].advance_stage(
                     session.session_id,
-                    WorkflowStage.COMPLETED
+                    WorkflowStage.RE_CONSENT
                 )
                 st.rerun()
+
+
+def render_re_consent():
+    """Stage 6: Re-consent confirmation after post-survey"""
+    st.markdown(T["re_consent_intro"])
+    st.markdown("---")
+
+    choice = st.radio(
+        T["re_consent_question"],
+        options=[T["re_consent_yes"], T["re_consent_no"]],
+        index=None,
+        key="re_consent_choice",
+    )
+
+    if st.button(T["re_consent_confirm_btn"], type="primary", use_container_width=True):
+        if choice is None:
+            st.toast(T["re_consent_err_select"], icon="⚠️")
+            st.warning(T["re_consent_err_select"])
+        else:
+            session = st.session_state.current_session
+            withdrawn = choice == T["re_consent_no"]
+            if withdrawn:
+                session.metadata["data_consent_withdrawn"] = True
+                session.save(DATA_DIR)
+            agents['supervisor'].advance_stage(
+                session.session_id,
+                WorkflowStage.COMPLETED
+            )
+            st.rerun()
 
 
 def _render_phone_collection():
@@ -743,7 +862,11 @@ def render_completed():
 
     _render_phone_collection()
 
-    st.success(T["completed_success"])
+    session = st.session_state.current_session
+    if session and session.metadata.get("data_consent_withdrawn"):
+        st.warning(T["re_consent_withdrawn_notice"])
+    else:
+        st.success(T["completed_success"])
 
     if T.get("completed_close_browser"):
         st.info(T["completed_close_browser"])
@@ -870,6 +993,8 @@ div[role="radiogroup"] > label > div:nth-child(2) {
                 render_task_response(agents, session, st.session_state.current_dialogue_id)
             elif session.current_stage == WorkflowStage.POST_SURVEY:
                 render_post_survey()
+            elif session.current_stage == WorkflowStage.RE_CONSENT:
+                render_re_consent()
             elif session.current_stage == WorkflowStage.COMPLETED:
                 render_completed()
         except Exception as _exc:
