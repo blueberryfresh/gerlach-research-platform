@@ -442,10 +442,11 @@ def _load_gerlach_type(session):
         return None
 
 
-def _task_counts_for_type(gerlach_type: str) -> dict:
-    """Count how many already-assigned participants sharing this Gerlach type
-    received each task, by scanning saved sessions + their linked assessments."""
-    counts = {t: 0 for t in REQUIRED_TASKS}
+def _counts_by_gerlach_type(gerlach_type: str, metadata_key: str, possible_values) -> dict:
+    """Count how many already-assigned participants sharing this Gerlach type have each
+    value of metadata_key (e.g. 'assigned_task' or 'assigned_personality'), by scanning
+    saved sessions + their linked assessments. Shared by both minimization draws below."""
+    counts = {v: 0 for v in possible_values}
     sessions_dir = DATA_DIR / "sessions"
     if not sessions_dir.exists():
         return counts
@@ -458,8 +459,8 @@ def _task_counts_for_type(gerlach_type: str) -> dict:
         except Exception:
             continue
 
-        assigned_task = s.get('metadata', {}).get('assigned_task')
-        if assigned_task not in counts:
+        value = s.get('metadata', {}).get(metadata_key)
+        if value not in counts:
             continue
 
         assessment_id = s.get('big5_assessment_id')
@@ -475,20 +476,24 @@ def _task_counts_for_type(gerlach_type: str) -> dict:
             continue
 
         if other_type == gerlach_type:
-            counts[assigned_task] += 1
+            counts[value] += 1
 
     return counts
+
+
+def _minimize_choice(gerlach_type: str, metadata_key: str, possible_values):
+    """Pick whichever value is currently least-represented for this Gerlach type among
+    prior participants (a "minimization" / covariate-adaptive randomization scheme).
+    Ties are broken at random, so the outcome is never deterministic in advance."""
+    counts = _counts_by_gerlach_type(gerlach_type, metadata_key, possible_values)
+    min_count = min(counts.values())
+    under_represented = [v for v, c in counts.items() if c == min_count]
+    return random.choice(under_represented)
 
 
 def _assign_balanced_task(session) -> str:
     """Task assignment that strives for an even Gerlach-type x task split rather than
     drawing the task independently of personality type.
-
-    Method: for this participant's Gerlach type, count how many prior participants of
-    the SAME type got each task, then assign whichever task is currently under-represented
-    for that type (a "minimization" / covariate-adaptive randomization scheme). If both
-    tasks are equally represented so far, the choice is still made at random — the task
-    is never picked deterministically, so it stays unpredictable in advance.
 
     Falls back to a plain random draw if the participant's Gerlach type isn't available
     (e.g. assessment record missing) — this should not normally happen, since task
@@ -502,20 +507,31 @@ def _assign_balanced_task(session) -> str:
     gerlach_type = _load_gerlach_type(session)
     if not gerlach_type:
         return random.choice(REQUIRED_TASKS)
+    return _minimize_choice(gerlach_type, 'assigned_task', REQUIRED_TASKS)
 
-    counts = _task_counts_for_type(gerlach_type)
-    min_count = min(counts.values())
-    under_represented = [t for t, c in counts.items() if c == min_count]
-    return random.choice(under_represented)
+
+def _assign_balanced_personality(session) -> str:
+    """AI-personality assignment that strives for an even Gerlach-type x AI-personality
+    split, using the same minimization approach as _assign_balanced_task — so that, as
+    far as possible, every combination of participant personality type and AI personality
+    gets a comparable number of participants, not just every task.
+
+    Falls back to a plain random draw among all four AI personalities if the
+    participant's Gerlach type isn't available."""
+    gerlach_type = _load_gerlach_type(session)
+    if not gerlach_type:
+        return random.choice(list(PERSONALITY_LABELS.keys()))
+    return _minimize_choice(gerlach_type, 'assigned_personality', list(PERSONALITY_LABELS.keys()))
 
 
 def _get_or_assign(session):
     """Return (task, personality), assigning on first call and persisting in metadata.
 
-    Task assignment deliberately strives for balance across the Gerlach personality
-    type x task combinations (see _assign_balanced_task) rather than being drawn
-    independently of personality type. AI personality assignment remains a plain
-    uniform random draw, independent of both the task and the participant's Gerlach type."""
+    Both the task and the AI-personality draws deliberately strive for balance against
+    the participant's Gerlach personality type (see _assign_balanced_task and
+    _assign_balanced_personality) rather than being drawn independently of it. The task
+    draw and the AI-personality draw are balanced independently of each other — each is
+    only balanced against Gerlach type, not against one another."""
     if "assigned_task" not in session.metadata:
         # Validate task files exist before assigning
         if not TASK_FOLDER.exists():
@@ -526,7 +542,7 @@ def _get_or_assign(session):
             return None, None
 
         session.metadata["assigned_task"] = _assign_balanced_task(session)
-        session.metadata["assigned_personality"] = random.choice(list(PERSONALITY_LABELS.keys()))
+        session.metadata["assigned_personality"] = _assign_balanced_personality(session)
         session.save(DATA_DIR)
 
     return session.metadata["assigned_task"], session.metadata["assigned_personality"]

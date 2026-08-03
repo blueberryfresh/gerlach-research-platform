@@ -560,9 +560,10 @@ def _render_personality_task_distribution():
     plus running totals/balance so the facilitator can see study progress at a glance."""
     st.header("🧬 Personality Type & Task Assignment")
     st.caption(
-        "Each participant's Gerlach personality type (from the Big5 assessment) and the task "
-        "they were randomly assigned to, with running totals so you can monitor balance across "
-        "the study. This section is always shown, independent of the tabs below."
+        "Each participant's Gerlach personality type (from the Big5 assessment), the task "
+        "and the AI conversational personality they were assigned, with running totals so "
+        "you can monitor balance across the study. This section is always shown, independent "
+        "of the tabs below."
     )
 
     if st.button("🔄 Refresh", key="pers_task_refresh"):
@@ -587,6 +588,11 @@ def _render_personality_task_distribution():
     }
     GERLACH_TYPES = list(GERLACH_DISPLAY.values())
     TASK_NAMES = list(TASK_LABELS.values())
+    # assigned_personality (the AI's conversational persona) is stored using the SAME
+    # snake_case keys as gerlach_type (average/role_model/self_centred/reserved) — this is
+    # a coincidence of the two independent four-way taxonomies, not the same field. Reuse
+    # GERLACH_DISPLAY for its display labels too.
+    AI_PERSONALITY_NAMES = list(GERLACH_DISPLAY.values())
 
     rows = []
     for session_file in sessions_dir.glob("*.json"):
@@ -599,6 +605,8 @@ def _render_personality_task_distribution():
         metadata = s.get('metadata', {})
         assigned_task_raw = metadata.get('assigned_task', '')
         task_label = TASK_LABELS.get(assigned_task_raw, assigned_task_raw or '—')
+        assigned_ai_raw = metadata.get('assigned_personality', '')
+        ai_personality_label = GERLACH_DISPLAY.get(assigned_ai_raw, assigned_ai_raw or '—')
 
         gerlach_type = None
         assessment_id = s.get('big5_assessment_id')
@@ -617,6 +625,7 @@ def _render_personality_task_distribution():
             'user_id': s.get('user_id', '—'),
             'gerlach_type': gerlach_type,
             'task': task_label if assigned_task_raw else None,
+            'ai_personality': ai_personality_label if assigned_ai_raw else None,
             'stage': s.get('current_stage', ''),
         })
 
@@ -687,15 +696,44 @@ def _render_personality_task_distribution():
     if unassigned_task_count:
         st.caption(f"{unassigned_task_count} assessed participant(s) have not been assigned a task yet.")
 
+    st.markdown("---")
+
+    # ── Cross-tab: personality type x AI personality ────────────────────────
+    st.subheader("Personality Type × AI Personality Assignment")
+    ai_crosstab = {t: {p: 0 for p in AI_PERSONALITY_NAMES} for t in GERLACH_TYPES}
+    unassigned_ai_count = 0
+    for r in assessed_rows:
+        t = r['gerlach_type']
+        ai_crosstab.setdefault(t, {p: 0 for p in AI_PERSONALITY_NAMES})
+        if r['ai_personality'] in AI_PERSONALITY_NAMES:
+            ai_crosstab[t][r['ai_personality']] += 1
+        else:
+            unassigned_ai_count += 1
+
+    try:
+        import pandas as pd
+        df_ai = pd.DataFrame(ai_crosstab).T
+        df_ai = df_ai.reindex(columns=AI_PERSONALITY_NAMES, fill_value=0)
+        df_ai['Total'] = df_ai.sum(axis=1)
+        st.dataframe(df_ai, use_container_width=True)
+    except ImportError:
+        for t, ai_counts in ai_crosstab.items():
+            line = "  |  ".join(f"{p}: {ai_counts.get(p, 0)}" for p in AI_PERSONALITY_NAMES)
+            st.markdown(f"**{t}** — {line}")
+
+    if unassigned_ai_count:
+        st.caption(f"{unassigned_ai_count} assessed participant(s) have not been assigned an AI personality yet.")
+
     # ── Full participant list ───────────────────────────────────────────────
     with st.expander(f"All Participants ({n_total})", expanded=True):
         for r in rows:
             icon = '✅' if r['gerlach_type'] else '⏳'
             gerlach_display = r['gerlach_type'] or 'not yet assessed'
             task_display = r['task'] or 'not yet assigned'
+            ai_display = r['ai_personality'] or 'not yet assigned'
             st.markdown(
                 f"{icon} **{r['user_id']}** — Type: `{gerlach_display}`  ·  "
-                f"Task: `{task_display}`  ·  Stage: `{r['stage']}`"
+                f"Task: `{task_display}`  ·  AI: `{ai_display}`  ·  Stage: `{r['stage']}`"
             )
 
 
