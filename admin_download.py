@@ -4,6 +4,7 @@ Password-protected data export
 """
 
 import os
+import re
 import streamlit as st
 import json
 import zipfile
@@ -830,6 +831,162 @@ def _collect_progress_rows():
     return rows
 
 
+# Coarse keyword heuristics for behavioral friction, not validated NLP classification —
+# see compute_friction_metrics(). Modeled on Przegalinska et al. (HBR, 2026), which found
+# self-reported satisfaction stayed flat across AI persona conditions while behavioral
+# signals (resistance language, override attempts, reply-length asymmetry) diverged sharply.
+_PUSHBACK_PATTERNS = [
+    r"that'?s not", r"i disagree", r"you'?re wrong", r"you are wrong",
+    r"that is wrong", r"that'?s incorrect", r"not what i asked",
+    r"not correct", r"this (isn'?t|is not) helpful", r"actually,",
+]
+_OVERRIDE_PATTERNS = [
+    r"ignore (your|all|the)? ?(previous|prior)? ?instructions",
+    r"ignore the system prompt",
+    r"pretend (you'?re|you are|to be)",
+    r"forget (your|the) rules",
+    r"new instructions",
+    r"you are now",
+    r"act as (a|an) ",
+]
+_PUSHBACK_RE = re.compile("|".join(_PUSHBACK_PATTERNS), re.IGNORECASE)
+_OVERRIDE_RE = re.compile("|".join(_OVERRIDE_PATTERNS), re.IGNORECASE)
+
+
+def compute_friction_metrics(dialogue: dict) -> dict:
+    """Behavioral friction indicators for one task dialogue, computed entirely from the
+    already-stored message log (dialogue['messages']) — no new instrumentation needed.
+
+    Returns reply-length asymmetry (user chars / assistant chars — hostile AI tends to
+    give shorter replies while users write more to compensate), pushback rate, override
+    attempts, and pace (messages/min), alongside the raw counts they're derived from.
+    """
+    messages = dialogue.get('messages', [])
+    user_msgs = [m for m in messages if m.get('role') == 'user']
+    assistant_msgs = [m for m in messages if m.get('role') == 'assistant']
+
+    user_chars = [len(m.get('content', '')) for m in user_msgs]
+    assistant_chars = [len(m.get('content', '')) for m in assistant_msgs]
+    avg_user_chars = sum(user_chars) / len(user_chars) if user_chars else None
+    avg_assistant_chars = sum(assistant_chars) / len(assistant_chars) if assistant_chars else None
+    reply_asymmetry = (
+        avg_user_chars / avg_assistant_chars
+        if avg_user_chars and avg_assistant_chars else None
+    )
+
+    pushback_count = sum(1 for m in user_msgs if _PUSHBACK_RE.search(m.get('content', '')))
+    override_count = sum(1 for m in user_msgs if _OVERRIDE_RE.search(m.get('content', '')))
+    pushback_rate = pushback_count / len(user_msgs) if user_msgs else None
+
+    duration_seconds = dialogue.get('duration_seconds')
+    messages_per_minute = (
+        len(user_msgs) / (duration_seconds / 60) if duration_seconds else None
+    )
+
+    return {
+        'dialogue_id': dialogue.get('dialogue_id'),
+        'llm_personality': dialogue.get('llm_personality'),
+        'task_name': dialogue.get('task_name'),
+        'user_message_count': len(user_msgs),
+        'assistant_message_count': len(assistant_msgs),
+        'reply_asymmetry': reply_asymmetry,
+        'pushback_count': pushback_count,
+        'pushback_rate': pushback_rate,
+        'override_attempt_count': override_count,
+        'messages_per_minute': messages_per_minute,
+    }
+
+
+def _render_friction_analysis():
+    """Friction Analysis tab — behavioral friction signals per dialogue, grouped by AI
+    personality. Complements the satisfaction scores in Export to CSV: HBR research
+    (Przegalinska et al., 2026) found self-report satisfaction alone missed persona effects
+    that behavioral friction indicators picked up."""
+    st.header("⚡ Friction Analysis")
+    st.caption(
+        "Behavioral friction per task dialogue — reply-length asymmetry, pushback language, "
+        "and override attempts — grouped by AI personality. Computed from message logs "
+        "already collected; no new instrumentation required. Pushback/override detection is "
+        "a coarse keyword heuristic, not validated NLP classification — treat rates as "
+        "directional, not precise."
+    )
+
+    if st.button("🔄 Refresh", key="friction_refresh"):
+        st.rerun()
+
+    dialogues_dir = DATA_DIR / "dialogues"
+    if not dialogues_dir.exists():
+        st.info("No dialogues recorded yet.")
+        return
+
+    metrics_rows = []
+    for dialogue_file in dialogues_dir.glob("*.json"):
+        try:
+            with open(dialogue_file, 'r', encoding='utf-8') as f:
+                d = json.load(f)
+        except Exception:
+            continue
+        if not d.get('messages'):
+            continue
+        metrics_rows.append(compute_friction_metrics(d))
+
+    if not metrics_rows:
+        st.info("No dialogues with messages recorded yet.")
+        return
+
+    # gerlach_type/llm_personality are stored as these snake_case keys (see
+    # agents/big5_assessment_agent.py classify_gerlach_type) — map to display labels.
+    GERLACH_DISPLAY = {
+        "average": "Average",
+        "role_model": "Role Model",
+        "self_centred": "Self-Centred",
+        "reserved": "Reserved",
+    }
+
+    by_personality = {}
+    for m in metrics_rows:
+        label = GERLACH_DISPLAY.get(m['llm_personality'], m['llm_personality'] or 'Unknown')
+        by_personality.setdefault(label, []).append(m)
+
+    def _avg(vals):
+        vals = [v for v in vals if v is not None]
+        return sum(vals) / len(vals) if vals else None
+
+    st.subheader("Friction by AI Personality")
+    summary = {}
+    for label, rows in by_personality.items():
+        summary[label] = {
+            'n': len(rows),
+            'Avg Pushback Rate': _avg([r['pushback_rate'] for r in rows]),
+            'Avg Reply Asymmetry': _avg([r['reply_asymmetry'] for r in rows]),
+            'Total Override Attempts': sum(r['override_attempt_count'] for r in rows),
+            'Avg Msgs/Min': _avg([r['messages_per_minute'] for r in rows]),
+        }
+
+    try:
+        import pandas as pd
+        df = pd.DataFrame(summary).T
+        df = df[['n', 'Avg Pushback Rate', 'Avg Reply Asymmetry', 'Total Override Attempts', 'Avg Msgs/Min']]
+        st.dataframe(df.round(3), use_container_width=True)
+    except ImportError:
+        for label, s in summary.items():
+            st.markdown(
+                f"**{label}** (n={s['n']}) — pushback: {s['Avg Pushback Rate']}, "
+                f"asymmetry: {s['Avg Reply Asymmetry']}, overrides: {s['Total Override Attempts']}, "
+                f"msgs/min: {s['Avg Msgs/Min']}"
+            )
+
+    with st.expander(f"Per-dialogue detail ({len(metrics_rows)})"):
+        for m in sorted(metrics_rows, key=lambda r: r['dialogue_id'] or ''):
+            label = GERLACH_DISPLAY.get(m['llm_personality'], m['llm_personality'] or 'Unknown')
+            asym = f"{m['reply_asymmetry']:.2f}" if m['reply_asymmetry'] is not None else "—"
+            st.markdown(
+                f"`{m['dialogue_id']}` — AI: **{label}**  ·  "
+                f"pushback: {m['pushback_count']}/{m['user_message_count']}  ·  "
+                f"overrides: {m['override_attempt_count']}  ·  asymmetry: {asym}"
+            )
+
+
 def _render_study_progress():
     """Study Progress tab — stage funnel vs. target, stalled sessions, enrollment
     trend, and average time per stage."""
@@ -992,13 +1149,16 @@ def admin_page():
 
     st.markdown("---")
 
-    tab0, tab_progress, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["👥 Activity Log", "📈 Study Progress", "📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test", "🤖 API Monitor"])
+    tab0, tab_progress, tab_friction, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["👥 Activity Log", "📈 Study Progress", "⚡ Friction Analysis", "📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test", "🤖 API Monitor"])
 
     with tab0:
         _render_activity_log()
 
     with tab_progress:
         _render_study_progress()
+
+    with tab_friction:
+        _render_friction_analysis()
 
     with tab1:
         st.header("Download All Research Data")
