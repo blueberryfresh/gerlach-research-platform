@@ -737,6 +737,240 @@ def _render_personality_task_distribution():
             )
 
 
+def _collect_progress_rows():
+    """One row per session with resolved timestamps for each stage transition.
+
+    Stage-transition timestamps aren't stored directly on the session, so they're
+    approximated from the timestamp on each stage's own artifact (assessment
+    conducted_at, dialogue started/ended_at, task_response submitted_at, survey
+    conducted_at). last_activity is the max of everything found, used for
+    stalled-session detection.
+    """
+    sessions_dir = DATA_DIR / "sessions"
+    rows = []
+    if not sessions_dir.exists():
+        return rows
+
+    for session_file in sessions_dir.glob("*.json"):
+        try:
+            with open(session_file, 'r', encoding='utf-8') as f:
+                s = json.load(f)
+        except Exception:
+            continue
+
+        started_at = s.get('started_at', '')
+        ended_at = s.get('ended_at') or None
+
+        assessment_at = None
+        assessment_id = s.get('big5_assessment_id')
+        if assessment_id:
+            af = DATA_DIR / "assessments" / f"{assessment_id}.json"
+            if af.exists():
+                try:
+                    with open(af, 'r', encoding='utf-8') as fh:
+                        assessment_at = json.load(fh).get('conducted_at')
+                except Exception:
+                    pass
+
+        dialogue_started_at, dialogue_ended_at, last_message_at = None, None, None
+        dialogue_records = s.get('dialogue_records', [])
+        if dialogue_records:
+            df = DATA_DIR / "dialogues" / f"{dialogue_records[0]}.json"
+            if df.exists():
+                try:
+                    with open(df, 'r', encoding='utf-8') as fh:
+                        d = json.load(fh)
+                    dialogue_started_at = d.get('started_at')
+                    dialogue_ended_at = d.get('ended_at')
+                    messages = d.get('messages', [])
+                    if messages:
+                        last_message_at = messages[-1].get('timestamp')
+                except Exception:
+                    pass
+
+        task_response_at = None
+        task_response_ids = s.get('task_response_ids', [])
+        if task_response_ids:
+            trf = DATA_DIR / "task_responses" / f"{task_response_ids[0]}.json"
+            if trf.exists():
+                try:
+                    with open(trf, 'r', encoding='utf-8') as fh:
+                        task_response_at = json.load(fh).get('submitted_at')
+                except Exception:
+                    pass
+
+        survey_at = None
+        survey_id = s.get('survey_id')
+        if survey_id:
+            svf = DATA_DIR / "surveys" / f"{survey_id}.json"
+            if svf.exists():
+                try:
+                    with open(svf, 'r', encoding='utf-8') as fh:
+                        survey_at = json.load(fh).get('conducted_at')
+                except Exception:
+                    pass
+
+        all_ts = [t for t in [started_at, assessment_at, dialogue_started_at, last_message_at,
+                               dialogue_ended_at, task_response_at, survey_at, ended_at] if t]
+        last_activity = max(all_ts) if all_ts else started_at
+
+        rows.append({
+            'user_id': s.get('user_id', '—'),
+            'session_id': s.get('session_id', '—'),
+            'stage': s.get('current_stage', ''),
+            'started_at': started_at,
+            'ended_at': ended_at,
+            'assessment_at': assessment_at,
+            'dialogue_started_at': dialogue_started_at,
+            'dialogue_ended_at': dialogue_ended_at,
+            'task_response_at': task_response_at,
+            'survey_at': survey_at,
+            'last_activity': last_activity,
+        })
+    return rows
+
+
+def _render_study_progress():
+    """Study Progress tab — stage funnel vs. target, stalled sessions, enrollment
+    trend, and average time per stage."""
+    st.header("📈 Study Progress")
+    st.caption("Funnel, pacing, stalled sessions, and stage timing across all participants.")
+
+    if st.button("🔄 Refresh", key="progress_refresh"):
+        st.rerun()
+
+    rows = _collect_progress_rows()
+    if not rows:
+        st.info("No participant sessions recorded yet.")
+        return
+
+    STAGES = [
+        "registration", "big5_assessment", "task_selection",
+        "task_dialogue", "task_response", "post_survey", "completed",
+    ]
+    STAGE_LABELS = {
+        "registration":    "1 — Registration",
+        "big5_assessment": "2 — Big5 Assessment",
+        "task_selection":  "3 — Task Selection",
+        "task_dialogue":   "4 — Task Dialogue",
+        "task_response":   "5 — Task Response",
+        "post_survey":     "6 — Post Survey",
+        "completed":       "7 — Completed",
+    }
+
+    # ── Target & overall completion ─────────────────────────────────────────
+    target_n = st.number_input(
+        "Target sample size (total)", min_value=1, value=100, step=1, key="progress_target_n"
+    )
+    total = len(rows)
+    completed = sum(1 for r in rows if r['stage'] == 'completed')
+    st.metric("Completed", f"{completed} / {target_n}", f"{total - completed} in progress")
+    st.progress(min(completed / target_n, 1.0))
+
+    st.markdown("---")
+
+    # ── Stage funnel ─────────────────────────────────────────────────────────
+    st.subheader("Stage Funnel — where participants are right now")
+    stage_counts = {stg: 0 for stg in STAGES}
+    for r in rows:
+        if r['stage'] in stage_counts:
+            stage_counts[r['stage']] += 1
+    for stg in STAGES:
+        n = stage_counts[stg]
+        st.markdown(f"**{STAGE_LABELS[stg]}** — {n} participant(s)")
+        st.progress(n / total if total else 0)
+
+    st.markdown("---")
+
+    # ── Stalled sessions ─────────────────────────────────────────────────────
+    st.subheader("Stalled Sessions")
+    stall_hours = st.number_input(
+        "Flag as stalled if no activity for (hours)", min_value=1, value=48, step=1,
+        key="progress_stall_hours",
+    )
+    now = datetime.now()
+    stalled = []
+    for r in rows:
+        if r['stage'] == 'completed' or not r['last_activity']:
+            continue
+        try:
+            la_dt = datetime.fromisoformat(r['last_activity'][:19])
+        except Exception:
+            continue
+        hours_idle = (now - la_dt).total_seconds() / 3600
+        if hours_idle >= stall_hours:
+            stalled.append((r, hours_idle))
+
+    if stalled:
+        stalled.sort(key=lambda x: -x[1])
+        for r, hrs in stalled:
+            st.warning(
+                f"⏸️ **{r['user_id']}** — stuck at *{STAGE_LABELS.get(r['stage'], r['stage'])}*, "
+                f"idle for {hrs:.0f}h (last activity: {r['last_activity'][:19].replace('T', ' ')})"
+            )
+    else:
+        st.success(f"No sessions idle for {stall_hours}+ hours.")
+
+    st.markdown("---")
+
+    # ── Enrollment / completion trend ────────────────────────────────────────
+    st.subheader("Enrollment & Completion Trend")
+    try:
+        import pandas as pd
+        reg_dates = [r['started_at'][:10] for r in rows if r['started_at']]
+        comp_dates = [r['ended_at'][:10] for r in rows if r['ended_at']]
+        all_dates = sorted(set(reg_dates) | set(comp_dates))
+        if all_dates:
+            trend_df = pd.DataFrame({
+                'Registrations': [reg_dates.count(d) for d in all_dates],
+                'Completions': [comp_dates.count(d) for d in all_dates],
+            }, index=all_dates)
+            st.bar_chart(trend_df)
+        else:
+            st.info("Not enough date data yet.")
+    except ImportError:
+        st.info("Install pandas to see the trend chart.")
+
+    st.markdown("---")
+
+    # ── Average time per stage ───────────────────────────────────────────────
+    st.subheader("Average Time per Stage")
+    st.caption(
+        "Estimated from each stage's recorded artifact timestamp (assessment, dialogue, "
+        "task response, survey). Only participants who have reached a given stage boundary "
+        "are included in that segment's average."
+    )
+
+    def _delta_minutes(a, b):
+        if not a or not b:
+            return None
+        try:
+            return (datetime.fromisoformat(b[:19]) - datetime.fromisoformat(a[:19])).total_seconds() / 60
+        except Exception:
+            return None
+
+    segments = [
+        ("Registration → Big5 Assessment",        'started_at',          'assessment_at'),
+        ("Big5 Assessment → Task Dialogue start",  'assessment_at',       'dialogue_started_at'),
+        ("Task Dialogue (start → end)",            'dialogue_started_at', 'dialogue_ended_at'),
+        ("Task Dialogue end → Task Response",      'dialogue_ended_at',   'task_response_at'),
+        ("Task Response → Post Survey",            'task_response_at',    'survey_at'),
+        ("Post Survey → Completed",                'survey_at',           'ended_at'),
+        ("Total (Registration → Completed)",       'started_at',          'ended_at'),
+    ]
+    for label, a_key, b_key in segments:
+        deltas = []
+        for r in rows:
+            d = _delta_minutes(r.get(a_key), r.get(b_key))
+            if d is not None and d >= 0:
+                deltas.append(d)
+        if deltas:
+            avg = sum(deltas) / len(deltas)
+            st.markdown(f"**{label}:** avg {avg:.1f} min  ·  n={len(deltas)}")
+        else:
+            st.markdown(f"**{label}:** — (no data yet)")
+
+
 def admin_page():
     """Main admin download page"""
 
@@ -758,10 +992,13 @@ def admin_page():
 
     st.markdown("---")
 
-    tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["👥 Activity Log", "📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test", "🤖 API Monitor"])
+    tab0, tab_progress, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["👥 Activity Log", "📈 Study Progress", "📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test", "🤖 API Monitor"])
 
     with tab0:
         _render_activity_log()
+
+    with tab_progress:
+        _render_study_progress()
 
     with tab1:
         st.header("Download All Research Data")
