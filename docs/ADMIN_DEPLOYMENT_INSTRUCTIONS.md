@@ -7,7 +7,7 @@ You now have a complete **admin data download system** with **automatic email no
 ### ✅ Features Implemented:
 
 1. **Password-Protected Admin Dashboard**
-   - Password: `bigllmstudy2026`
+   - Password: `[ask the PI — not documented here for security]`
    - Secure access to all participant data
 
 2. **Data Download Options**:
@@ -120,7 +120,7 @@ if st.sidebar.button("📊 Admin Download Center"):
 1. **Test Admin Access**:
    - Go to your app URL
    - Navigate to Admin Download page
-   - Enter password: `bigllmstudy2026`
+   - Enter password: `[ask the PI — not documented here for security]`
    - Verify you can see the dashboard
 
 2. **Test Email Notifications**:
@@ -139,7 +139,7 @@ if st.sidebar.button("📊 Admin Download Center"):
 
 ### Method 1: Download All Data
 
-1. Log in to admin dashboard (password: `bigllmstudy2026`)
+1. Log in to admin dashboard (password: `[ask the PI — not documented here for security]`)
 2. Go to "Download All Data" tab
 3. Click "Create ZIP File"
 4. Click "Download All Data (ZIP)"
@@ -237,7 +237,7 @@ Then commit and push to GitHub. (Note: this constant lives only in
 
 ### Admin Password
 
-- **Password:** `bigllmstudy2026`
+- **Password:** `[ask the PI — not documented here for security]`
 - **Stored in:** Streamlit secrets (`ADMIN_PASSWORD`) or the `ADMIN_PASSWORD` environment variable — not hardcoded in `admin_download.py`
 - **To change:** Edit the file, commit, and push to GitHub
 

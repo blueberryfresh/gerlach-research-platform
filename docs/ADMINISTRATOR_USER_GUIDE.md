@@ -77,7 +77,7 @@ https://[your-app-name].streamlit.app
 
 ### Admin Credentials
 
-**Password:** `bigllmstudy2026`
+**Password:** `[ask the PI — not documented here for security]`
 
 **Security Note:** This password protects all participant data. Keep it confidential and share only with authorized research team members.
 
@@ -107,7 +107,7 @@ Before collecting data:
 3. **Scroll to the bottom** of the sidebar
 4. **Find "🔧 Admin Tools"** section
 5. **Click "📊 Admin Download Center"** button
-6. **Enter password:** `bigllmstudy2026`
+6. **Enter password:** `[ask the PI — not documented here for security]`
 7. **Click "Login"**
 
 #### Method 2: Direct Access (If Configured)
@@ -1228,7 +1228,7 @@ Data Changelog - Gerlach Research Project
    - Check for typos in address
 
 2. **Check Password**
-   - Password: `bigllmstudy2026` (case-sensitive)
+   - Password: `[ask the PI — not documented here for security]` (case-sensitive)
    - No spaces before/after
    - Try copying and pasting
 
@@ -1549,7 +1549,7 @@ Data Changelog - Gerlach Research Project
 
 #### Admin Access
 - **URL:** Your Streamlit app URL
-- **Password:** `bigllmstudy2026`
+- **Password:** `[ask the PI — not documented here for security]`
 - **Location:** Sidebar → Admin Tools → Admin Download Center
 
 #### Download Options
