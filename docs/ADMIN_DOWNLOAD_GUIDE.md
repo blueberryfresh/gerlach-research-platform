@@ -10,7 +10,7 @@ This guide explains how to use the **Admin Download Center** to retrieve partici
 ## 🔐 Accessing the Admin Dashboard
 
 ### Password
-**`Big5llmstudy`**
+**`bigllmstudy2026`**
 
 ### How to Access
 1. Go to your Streamlit app URL
@@ -296,7 +296,7 @@ File → Import Data → CSV → Select file
 **Problem:** Password not working
 
 **Solution:**
-- Verify password: `Big5llmstudy` (case-sensitive)
+- Verify password: `bigllmstudy2026` (case-sensitive)
 - Clear browser cache and try again
 - Try a different browser
 
@@ -371,7 +371,7 @@ File → Import Data → CSV → Select file
 
 ### Admin Password
 ```
-Big5llmstudy
+bigllmstudy2026
 ```
 
 ### File Formats
@@ -423,7 +423,7 @@ Big5llmstudy
 
 **You have a simple, secure system for downloading participant data:**
 
-1. **Log in** with password: `Big5llmstudy`
+1. **Log in** with password: `bigllmstudy2026`
 2. **Choose download method:**
    - All data (ZIP) - for backups
    - Individual participant - for review
