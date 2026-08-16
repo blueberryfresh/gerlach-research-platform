@@ -18,6 +18,7 @@ class WorkflowStage(Enum):
     TASK_DIALOGUE = "task_dialogue"
     TASK_RESPONSE = "task_response"
     POST_SURVEY = "post_survey"
+    RE_CONSENT = "re_consent"
     COMPLETED = "completed"
 
 

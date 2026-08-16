@@ -142,6 +142,7 @@ class SupervisorAgent:
             WorkflowStage.TASK_SELECTION,
             WorkflowStage.TASK_DIALOGUE,
             WorkflowStage.POST_SURVEY,
+            WorkflowStage.RE_CONSENT,
             WorkflowStage.COMPLETED
         ]
         

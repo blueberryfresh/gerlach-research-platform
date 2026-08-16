@@ -35,6 +35,7 @@ EN = {
         "task_dialogue":   "Step 2 of 3 — Collaboration Task",
         "task_response":   "Step 2 of 3 — Collaboration Task",
         "post_survey":     "Step 3 of 3 — Follow-up Questionnaire",
+        "re_consent":      "Final Step — Data Consent",
         "completed":       "Completed",
     },
 
@@ -189,6 +190,22 @@ EN = {
     "survey_warning_unanswered": (
         "**Almost there!** The following item(s) still need a response: "
         "**{nums_str}**. Please scroll up and rate each one before submitting."
+    ),
+
+    # ── Re-consent ────────────────────────────────────────────────────────────
+    "re_consent_intro": (
+        "Thank you for completing the study.\n\n"
+        "Before we wrap up, we need to confirm whether you are still willing to allow "
+        "your data to be used for research purposes, just as you agreed at the beginning of the study."
+    ),
+    "re_consent_question":  "Do you still consent to your data being used for research purposes?",
+    "re_consent_yes":       "Yes, I still consent",
+    "re_consent_no":        "No, I wish to withdraw my consent",
+    "re_consent_confirm_btn": "Confirm",
+    "re_consent_err_select":  "Please select an option to continue.",
+    "re_consent_withdrawn_notice": (
+        "Your withdrawal has been recorded. Your data will not be included in the study. "
+        "Thank you for your time."
     ),
 
     # ── Completed ─────────────────────────────────────────────────────────────
@@ -585,6 +602,7 @@ KO = {
         "task_dialogue":   "2단계 / 3 — 협업 과제",
         "task_response":   "2단계 / 3 — 협업 과제",
         "post_survey":     "3단계 / 3 — 사후 설문지",
+        "re_consent":      "최종 단계 — 데이터 동의",
         "completed":       "완료",
     },
 
@@ -741,6 +759,22 @@ KO = {
     "survey_warning_unanswered": (
         "**거의 다 됐습니다!** 다음 문항에 아직 응답이 필요합니다: "
         "**{nums_str}**. 위로 스크롤하여 제출 전에 각 문항을 평가하십시오."
+    ),
+
+    # ── Re-consent ────────────────────────────────────────────────────────────
+    "re_consent_intro": (
+        "연구를 완료해 주셔서 감사합니다.\n\n"
+        "마무리하기 전에, 연구 시작 시 동의하신 것처럼 "
+        "참여하시는분의 데이터를 연구 목적으로 사용하는 것에 여전히 동의하시는지 확인드리고자 합니다."
+    ),
+    "re_consent_question":  "참여하시는분의 데이터를 연구 목적으로 사용하는 것에 여전히 동의하십니까?",
+    "re_consent_yes":       "네, 여전히 동의합니다",
+    "re_consent_no":        "아니오, 동의를 철회하고 싶습니다",
+    "re_consent_confirm_btn": "확인",
+    "re_consent_err_select":  "계속하려면 위의 옵션을 선택해 주세요.",
+    "re_consent_withdrawn_notice": (
+        "동의 철회가 기록되었습니다. 참여하시는분의 데이터는 연구에 포함되지 않습니다. "
+        "참여해 주셔서 감사합니다."
     ),
 
     # ── Completed ─────────────────────────────────────────────────────────────

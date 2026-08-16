@@ -373,6 +373,7 @@ def sim_regression_checks(supervisor: SupervisorAgent, results: SimulationResult
             WorkflowStage.TASK_DIALOGUE,
             WorkflowStage.TASK_RESPONSE,
             WorkflowStage.POST_SURVEY,
+            WorkflowStage.RE_CONSENT,
             WorkflowStage.COMPLETED,
         }
         all_stages   = set(WorkflowStage)
