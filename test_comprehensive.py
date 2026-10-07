@@ -1080,6 +1080,7 @@ class TestFullWorkflowIntegration:
 
         # 2. Big5 Assessment
         sup.advance_stage(session.session_id, WorkflowStage.BIG5_ASSESSMENT)
+        session = sup.get_session(session.session_id)  # re-sync: advance_stage saved its own copy
         responses = _neutral_responses()
         assessment = assessment_agent.conduct_assessment(
             session.user_id, session.session_id, responses
@@ -1093,6 +1094,7 @@ class TestFullWorkflowIntegration:
 
         # 4. Dialogue
         sup.advance_stage(session.session_id, WorkflowStage.TASK_DIALOGUE)
+        session = sup.get_session(session.session_id)  # re-sync: advance_stage saved its own copy
         dialogue = dialogue_agent.start_dialogue(
             session.user_id, session.session_id,
             "Noble Industries", "role_model"
@@ -1110,6 +1112,7 @@ class TestFullWorkflowIntegration:
 
         # 6. Post Survey
         sup.advance_stage(session.session_id, WorkflowStage.POST_SURVEY)
+        session = sup.get_session(session.session_id)  # re-sync: advance_stage saved its own copy
         survey_responses = _build_survey_responses()
         survey = survey_agent.conduct_survey(
             session.user_id, session.session_id,
@@ -1120,6 +1123,7 @@ class TestFullWorkflowIntegration:
 
         # 7. Completed + Report
         sup.advance_stage(session.session_id, WorkflowStage.COMPLETED)
+        session = sup.get_session(session.session_id)  # re-sync: advance_stage saved its own copy
         report = summary_agent.generate_report(session.user_id, session.session_id)
         session.report_id = report.report_id
         session.save(tmp_path)
