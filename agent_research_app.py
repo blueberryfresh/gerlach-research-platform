@@ -114,6 +114,12 @@ if 'ko_consent_given' not in st.session_state:
 if 'ko_consent_declined' not in st.session_state:
     st.session_state.ko_consent_declined = False
 
+if 'en_consent_given' not in st.session_state:
+    st.session_state.en_consent_given = False
+
+if 'en_consent_declined' not in st.session_state:
+    st.session_state.en_consent_declined = False
+
 
 _STAGE_LABELS = T["stage_labels"]
 
@@ -203,6 +209,121 @@ def render_korean_welcome():
         else:
             st.session_state.ko_consent_given = True
             st.rerun()
+
+
+def render_english_welcome():
+    """English-only: IRB consent/welcome page shown before registration."""
+    st.markdown("## Study Information and Consent")
+
+    # Declined state — show exit message only
+    if st.session_state.en_consent_declined:
+        st.error(
+            "You have not consented to participate in this study. "
+            "Thank you for your interest. You may now close this browser window."
+        )
+        return
+
+    welcome_text = """
+Hello. Thank you for participating in this study.
+Before you begin your participation, we would like to provide you with information about the study.
+
+**1. Background and Purpose of the Study**
+This study examines how the experience of completing a collaborative task with an AI chatbot affects users' satisfaction and perceptions of the resulting output.
+
+**2. Participation Period, Procedures, and Time Required**
+You may participate in the study during the one week period beginning on the study start date. The study will take approximately 20 to 30 minutes to complete. All procedures will be conducted online using your own device. You will access the study using the QR code or link provided in the recruitment notice and proceed through the study according to the instructions provided.
+
+**3. Anticipated Risks and Benefits**
+This study consists solely of completing an online survey and performing a collaborative task with an AI chatbot, and no physical or psychological risks are anticipated. However, the approximately 20 to 30 minutes required to complete the survey and task may involve minor inconvenience.
+There are no direct benefits to participants. However, the findings of this study are expected to contribute to the academic foundation for designing personalized AI systems and improving human AI collaboration experiences.
+
+**4. Compensation for Participation**
+All participants who complete the study will receive a Starbucks mobile gift card worth KRW 10,000. You may withdraw from the study at any time without penalty. However, compensation will be provided only to participants who complete both the survey and the task. Participants who withdraw before completing the study will not receive compensation.
+Your mobile phone number will be collected separately for the sole purpose of providing compensation and will be deleted immediately after the compensation has been provided. This information will not be used for any other purpose and will be managed separately from the research data.
+
+**5. Compensation for Losses Related to Participation**
+No risks, losses, or injuries are anticipated as a result of participating in this survey study. The telephone number and email address of the researcher will be provided in case you require additional information or explanation regarding the study.
+
+**6. Right to Withdraw or Discontinue Participation**
+You may withdraw from or discontinue your participation in this study at any time during the study without any penalty or disadvantage. If you withdraw, your data and information will be deleted immediately and will not be retained or used for analysis. Participants who withdraw before completing the study will not receive compensation.
+
+**7. Protection of Personal Information and Confidentiality**
+The study will not collect information that can directly identify you, such as your name or resident registration number. Only limited demographic information required for statistical analysis, specifically gender and major, will be collected.
+
+The collected data will be stored under the supervision of the principal investigator on a computer used for statistical data analysis in the research laboratory, in formats such as Excel or SPSS data files. The data will be retained for three years following completion of the study. After this retention period, all related electronic documents will be permanently deleted and any printed documents will be destroyed. Statistical analyses will be conducted only within the research laboratory.
+
+If information obtained from this study is presented in an academic journal or at an academic conference, participants' names and other personally identifiable information will not be disclosed. If a participant discontinues or withdraws from the study, the participant's data and information will be destroyed immediately.
+
+The minimum personal information necessary for providing compensation, such as contact information, will be collected separately and managed independently from the research data. This information will be used solely for the purpose of providing compensation, and access will be restricted to the principal investigator. It will be deleted immediately after compensation has been provided and will not be combined with the research data or used for analysis.
+
+**8. Research Inquiries**
+If you have any questions regarding this study, please contact us using the information below.
+
+**Research Contact**
+Yonsei University School of Business Research Lab
+010 3460 0613
+Researcher: Il Im
+il.im@yonsei.ac.kr
+
+**Contact for Questions Regarding Research Participants' Rights**
+Yonsei University Institutional Review Board
+02-2123-5143
+"""
+    st.markdown(welcome_text)
+
+    st.markdown("---")
+    st.markdown(
+        "Please indicate whether you agree or disagree with each of the statements below.  \n"
+        "**You must agree to all statements in order to participate in the study.**"
+    )
+    st.markdown("")
+
+    consent1 = st.radio(
+        "I understand the purpose of this study and wish to participate in the study.",
+        options=["Agree", "Disagree"],
+        index=None,
+        horizontal=True,
+        key="en_consent_item1",
+    )
+    consent2 = st.radio(
+        "I understand that I may freely withdraw from the study at any time during my participation.",
+        options=["Agree", "Disagree"],
+        index=None,
+        horizontal=True,
+        key="en_consent_item2",
+    )
+
+    st.markdown("")
+    if st.button("Confirm", type="primary", use_container_width=False):
+        if consent1 is None or consent2 is None:
+            st.warning("Please respond to all items.")
+        elif consent1 == "Disagree" or consent2 == "Disagree":
+            st.session_state.en_consent_declined = True
+            st.rerun()
+        else:
+            st.session_state.en_consent_given = True
+            st.rerun()
+
+
+_DEBRIEFING_TEXT = """
+**Debriefing Statement**
+
+This study was motivated by the question, "Is collaboration more satisfying when an AI's personality is compatible with my own?" Prior research has shown that people often experience greater comfort and trust when collaborating with others who have similar personality characteristics. This study aimed to examine whether a similar pattern also emerges in collaboration with AI. For this reason, you were not informed in advance about the personality of the AI with which you would interact. This was a deliberate feature of the research design intended to prevent prior information from influencing your responses.
+
+**Personality Type Classification Criteria (Gerlach et al., 2018)**
+
+This study measured the five widely used dimensions of personality in psychology, openness, conscientiousness, extraversion, agreeableness, and neuroticism, and used four representative personality types identified based on patterns across these five dimensions.
+
+- **Average:** This type shows a relatively balanced profile across all five personality dimensions, with no single trait being particularly dominant and with a tendency to respond flexibly depending on the situation. The AI reflecting this type was designed to maintain a neutral and balanced approach, consider multiple alternatives, and suggest practical conclusions.
+
+- **Role Model:** This type is characterized by high conscientiousness, extraversion, and agreeableness, together with low neuroticism, and tends to display a stable and cooperative orientation. The AI reflecting this type was designed to use a positive and encouraging tone and to present problems in a systematic, step by step manner.
+
+- **Self Centered:** This type is characterized by high extraversion and low agreeableness, with a tendency toward assertiveness and rapid decision making. The AI reflecting this type was designed to use confident and decisive language and to emphasize efficiency and quick judgment.
+
+- **Reserved:** This type is characterized by low openness and extraversion, with a tendency toward caution and stability. The AI reflecting this type was designed to use a calm tone, consider potential risks, and suggest stable alternatives grounded in evidence.
+
+The AI with which you interacted did not simply provide predetermined responses. Instead, it was a language model based system that generated responses in real time according to predefined instructions designed to consistently reflect one of the four personality types described above. The research team verified in advance that each AI condition consistently exhibited the intended personality characteristics. These classifications are provisional categories used solely for research purposes and are not intended to diagnose or evaluate your personality, abilities, or personal values.
+"""
 
 
 def render_registration():
@@ -971,6 +1092,10 @@ def render_completed():
     if T.get("completed_close_browser"):
         st.info(T["completed_close_browser"])
 
+    if APP_LANG != "ko":
+        st.markdown("---")
+        st.markdown(_DEBRIEFING_TEXT)
+
     st.markdown("---")
 
 
@@ -1062,6 +1187,8 @@ div[role="radiogroup"] > label > div:nth-child(2) {
     if not st.session_state.current_session:
         if APP_LANG == "ko" and not st.session_state.ko_consent_given:
             render_korean_welcome()
+        elif APP_LANG != "ko" and not st.session_state.en_consent_given:
+            render_english_welcome()
         else:
             render_registration()
     else:

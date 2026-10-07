@@ -48,16 +48,20 @@ class SupervisorAgent:
         return session
     
     def get_session(self, session_id: str) -> Optional[UserSession]:
-        """Get session by ID"""
-        if session_id in self.active_sessions:
-            return self.active_sessions[session_id]
-        
+        """Get session by ID.
+
+        Always reads from disk rather than trusting the in-memory cache: the
+        admin Stage Navigator (and GitHub sync on redeploy) write session files
+        directly, and this process's cache has no way to know about that write.
+        Returning a stale cached object silently ignored those changes until
+        the server restarted. The on-disk JSON is the source of truth.
+        """
         try:
             session = UserSession.load(session_id, self.data_dir)
             self.active_sessions[session_id] = session
             return session
         except Exception:
-            return None
+            return self.active_sessions.get(session_id)
     
     def advance_stage(self, session_id: str, next_stage: WorkflowStage) -> bool:
         """Advance session to next workflow stage"""
