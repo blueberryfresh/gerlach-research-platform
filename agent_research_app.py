@@ -325,6 +325,27 @@ This study measured the five widely used dimensions of personality in psychology
 The AI with which you interacted did not simply provide predetermined responses. Instead, it was a language model based system that generated responses in real time according to predefined instructions designed to consistently reflect one of the four personality types described above. The research team verified in advance that each AI condition consistently exhibited the intended personality characteristics. These classifications are provisional categories used solely for research purposes and are not intended to diagnose or evaluate your personality, abilities, or personal values.
 """
 
+# Korean debriefing text supplied by the Korean research partner (verbatim wording).
+_DEBRIEFING_TEXT_KO = """
+**Debriefing Statement**
+
+이 연구는 "AI의 성격과 나의 성격이 잘 맞을 때, 협업이 더 만족스러울까?"라는 질문에서 출발했습니다. 사람들은 자신과 성향이 비슷한 상대와 협업할 때 더 편안함과 신뢰를 느낀다는 연구들이 있는데, 이러한 현상이 AI와의 협업에서도 나타나는지 확인하고자 했습니다. 이를 위해 귀하께는 사전에 어떤 성격의 AI와 협업하게 될지 알리지 않았으며, 이는 사전 정보가 응답에 영향을 줄 가능성을 막기 위한 연구 설계상의 조치였습니다.
+
+**성격 유형 분류 기준 (Gerlach et al., 2018)**
+
+본 연구는 심리학 연구에서 널리 쓰이는 성격의 다섯 요인(개방성, 성실성, 외향성, 친화성, 신경증)을 측정한 뒤, 그 조합 패턴을 바탕으로 분류된 네 가지 대표 성격 유형을 활용했습니다.
+
+- **Average(평균형):** 다섯 요인 모두에서 비교적 균형 잡힌 모습을 보이는 유형으로, 특정 성향이 두드러지기보다 상황에 따라 유연하게 반응하는 경향이 있습니다. 이 유형을 반영한 AI는 중립적이고 균형 잡힌 태도로 여러 대안을 함께 검토하며 실용적인 결론을 제안하도록 설계했습니다.
+
+- **Role Model(모범형):** 성실성과 외향성, 친화성이 높고 신경증은 낮은 유형으로, 안정적이고 협력적인 태도를 보이는 경향이 있습니다. 이 유형을 반영한 AI는 긍정적이고 격려하는 어조로 문제를 체계적으로 단계화하여 제시하도록 설계했습니다.
+
+- **Self Centered(자기중심형):** 외향성이 높고 친화성이 낮은 유형으로, 자기주장이 분명하고 의사결정이 신속한 경향이 있습니다. 이 유형을 반영한 AI는 자신감 있고 단호한 표현으로 효율성과 빠른 판단을 강조하도록 설계했습니다.
+
+- **Reserved(신중형):** 개방성과 외향성이 낮은 유형으로, 신중하고 안정 지향적인 경향이 있습니다. 이 유형을 반영한 AI는 차분한 어조로 위험 요소를 점검하고 근거 중심의 안정적인 대안을 제시하도록 설계했습니다.
+
+귀하와 상호작용한 AI는 미리 정해진 답변을 그대로 출력하는 것이 아니라, 위 네 가지 유형 중 하나의 성향이 일관되게 반영되도록 사전에 설계된 지침에 따라 실시간으로 응답을 생성하는 언어모델 기반 시스템이었습니다. 연구진은 각 유형이 실제로 해당 성향을 일관되게 보이는지 사전에 검증하였으며, 분류는 임시적 구분으로 귀하 개인의 성격, 능력, 가치를 진단하거나 평가하기 위한 것이 아닙니다.
+"""
+
 
 def render_registration():
     """Stage 1: User Registration"""
@@ -1092,9 +1113,8 @@ def render_completed():
     if T.get("completed_close_browser"):
         st.info(T["completed_close_browser"])
 
-    if APP_LANG != "ko":
-        st.markdown("---")
-        st.markdown(_DEBRIEFING_TEXT)
+    st.markdown("---")
+    st.markdown(_DEBRIEFING_TEXT_KO if APP_LANG == "ko" else _DEBRIEFING_TEXT)
 
     st.markdown("---")
 
