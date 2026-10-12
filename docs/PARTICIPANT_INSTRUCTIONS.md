@@ -43,7 +43,8 @@
 
 1. **Type this URL** in your browser's address bar:
    ```
-   https://gerlach-research.streamlit.app
+   English: https://gerlach-research.streamlit.app/
+   Korean:  https://blueberryfresh-research-ko.streamlit.app/
    ```
    
    *(The exact URL will be provided by your research coordinator)*

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Participant Workflow - Gerlach Research Platform</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .step {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+        }
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .step-title {
+            flex-grow: 1;
+            margin-left: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .step-time {
+            background: #e8eaf6;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .step-content {
+            margin-top: 15px;
+        }
+        .step-content h4 {
+            color: #764ba2;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        .step-content ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .step-content li {
+            margin: 5px 0;
+        }
+        .interface-box {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .interface-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .interface-panel {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 0.9em;
+        }
+        .interface-panel h5 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+        .checkmark {
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .option-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .option-card {
+            background: #f0f4ff;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .option-card h5 {
+            margin: 0 0 5px 0;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        .option-card p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .summary-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .summary-box h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .data-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+        }
+        .data-item h4 {
+            margin: 0 0 10px 0;
+            color: #4caf50;
+        }
+        .timeline-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .timeline-table th,
+        .timeline-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .timeline-table th {
+            background: #667eea;
+            color: white;
+        }
+        .timeline-table tr:hover {
+            background: #f5f5f5;
+        }
+        .arrow {
+            text-align: center;
+            font-size: 2em;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .tech-notes {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .tech-notes h4 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        @media print {
+            body {
+                background-color: white;
+            }
+            .step {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🎯 Participant Workflow</h1>
+    <p>Gerlach Personality Research Platform</p>
+    <p style="font-size: 0.9em; margin-top: 10px;">Complete Study Journey: 45-75 minutes</p>
+</div>
+
+<!-- STEP 1 -->
+<div class="step">
+    <div class="step-header">
+        <div class="step-number">1</div>
+        <div class="step-title">ACCESS & REGISTRATION</div>
+        <div class="step-time">⏱️ 2-3 minutes</div>
+    </div>
+    <div class="step-content">
+        <h4>What Participant Receives:</h4>
+        <ul>
+            <li>Study URL: <span class="highlight">https://gerlach-research.streamlit.app/ (English) / https://blueberryfresh-research-ko.streamlit.app/ (Korean)</span></li>
+            <li>Unique Participant ID (e.g., P001, KOREA_042)</li>
+            <li>USER_GUIDE.docx (optional)</li>
+        </ul>
+        
+        <h4>What Participant Does:</h4>
+        <ol>
+            <li>Opens URL in web browser</li>
+            <li>Enters Participant ID</li>
+            <li>Reads and provides informed consent ✓</li>
+        </ol>
+        
+        <p><span class="checkmark">✅</span> <strong>Session Created → Moves to Big5 Assessment</strong></p>
+    </div>
+</div>
+
+<div class="arrow">↓</div>
+
+<!-- STEP 2 -->
+<div class="step">
+    <div class="step-header">
+        <div class="step-number">2</div>
+        <div class="step-title">BIG5 PERSONALITY ASSESSMENT</div>
+        <div class="step-time">⏱️ 10-15 minutes</div>
+    </div>
+    <div class="step-content">
+        <h4>IPIP-50 Questionnaire:</h4>
+        <ul>
+            <li><strong>50 questions total</strong> (10 per trait)</li>
+            <li><strong>5-point Likert scale:</strong>
+                <ul>
+                    <li>1 = Strongly Disagree</li>
+                    <li>2 = Disagree</li>
+                    <li>3 = Neutral</li>
+                    <li>4 = Agree</li>
+                    <li>5 = Strongly Agree</li>
+                </ul>
+            </li>
+        </ul>
+        
+        <h4>Example Questions:</h4>
+        <div class="interface-box">
+            • "I am the life of the party"<br>
+            • "I sympathize with others' feelings"<br>
+            • "I am always prepared"<br>
+            • "I get stressed out easily"<br>
+            • "I have a vivid imagination"
+        </div>
+        
+        <h4>System Calculates:</h4>
+        <ul>
+            <li>Big5 scores (0-100 per trait)</li>
+            <li>Gerlach personality type: <strong>Average</strong>, <strong>Role Model</strong>, <strong>Self-Centred</strong>, or <strong>Reserved</strong></li>
+            <li>Confidence score</li>
+        </ul>
+        
+        <p><span class="checkmark">✅</span> <strong>Personality Profile Complete</strong></p>
+    </div>
+</div>
+
+<div class="arrow">↓</div>
+
+<!-- STEP 3 -->
+<div class="step">
+    <div class="step-header">
+        <div class="step-number">3</div>
+        <div class="step-title">TASK & LLM PERSONALITY SELECTION</div>
+        <div class="step-time">⏱️ 2-3 minutes</div>
+    </div>
+    <div class="step-content">
+        <h4>A. SELECT TASK (Choose 1):</h4>
+        <div class="option-grid">
+            <div class="option-card">
+                <h5>📋 Noble Industries</h5>
+                <p>Candidate Evaluation & Ranking Task</p>
+            </div>
+            <div class="option-card">
+                <h5>💡 Popcorn Brain</h5>
+                <p>Creative Problem-Solving & Brainstorming</p>
+            </div>
+        </div>
+        
+        <h4>B. SELECT LLM PERSONALITY (Choose 1):</h4>
+        <div class="option-grid">
+            <div class="option-card">
+                <h5>⚖️ Average</h5>
+                <p>Balanced & Practical</p>
+            </div>
+            <div class="option-card">
+                <h5>⭐ Role Model</h5>
+                <p>Optimistic & Organized</p>
+            </div>
+            <div class="option-card">
+                <h5>🎯 Self-Centred</h5>
+                <p>Direct & Competitive</p>
+            </div>
+            <div class="option-card">
+                <h5>🤫 Reserved</h5>
+                <p>Calm & Conventional</p>
+            </div>
+        </div>
+        
+        <p><span class="checkmark">✅</span> <strong>Task Document Loaded, LLM Personality Initialized</strong></p>
+    </div>
+</div>
+
+<div class="arrow">↓</div>
+
+<!-- STEP 4 -->
+<div class="step">
+    <div class="step-header">
+        <div class="step-number">4</div>
+        <div class="step-title">TASK DIALOGUE (Collaborative Problem-Solving)</div>
+        <div class="step-time">⏱️ 15-25 minutes</div>
+    </div>
+    <div class="step-content">
+        <h4>Interface Layout:</h4>
+        <div class="interface-split">
+            <div class="interface-panel">
+                <h5>📄 TASK DOCUMENT (Left Panel)</h5>
+                • Full task description<br>
+                • Scrollable, read-only<br>
+                • Always visible
+            </div>
+            <div class="interface-panel">
+                <h5>💬 CHAT INTERFACE (Right Panel)</h5>
+                🤖 LLM: "Hello! I'm here to help..."<br><br>
+                👤 USER: "Let's start by..."<br><br>
+                🤖 LLM: "Great idea! Let's..."<br><br>
+                [Type message] [Send] [End]
+            </div>
+        </div>
+        
+        <h4>System Captures:</h4>
+        <ul>
+            <li>Every message (user & LLM) with timestamps</li>
+            <li>Total message count</li>
+            <li>Dialogue duration</li>
+            <li>Conversation flow</li>
+        </ul>
+        
+        <p><span class="checkmark">✅</span> <strong>Participant Clicks "End Dialogue" When Ready</strong></p>
+    </div>
+</div>
+
+<div class="arrow">↓</div>
+
+<!-- STEP 5 -->
+<div class="step">
+    <div class="step-header">
+        <div class="step-number">5</div>
+        <div class="step-title">TASK-SPECIFIC RESPONSE</div>
+        <div class="step-time">⏱️ 5-10 minutes</div>
+    </div>
+    <div class="step-content">
+        <h4>IF NOBLE INDUSTRIES TASK:</h4>
+        <div class="interface-box">
+            <strong>CANDIDATE RANKING INTERFACE</strong><br><br>
+            Rank the 5 candidates (1 = Best, 5 = Worst):<br><br>
+            Candidate A: [Dropdown: 1-5]<br>
+            Rationale: [Text box for explanation]<br><br>
+            Candidate B: [Dropdown: 1-5]<br>
+            Rationale: [Text box for explanation]<br><br>
+            [Continues for all 5 candidates...]<br><br>
+            [Submit Rankings]
+        </div>
+        
+        <h4>IF POPCORN BRAIN TASK:</h4>
+        <div class="interface-box">
+            <strong>CREATIVE SELF-ASSESSMENT</strong><br><br>
+            Rate yourself on each dimension (1-7 scale):<br><br>
+            1. ORIGINALITY<br>
+            "I created unique ideas to solve the problem"<br>
+            1 ────────○─────── 7<br><br>
+            2. FLEXIBILITY<br>
+            "I presented alternative ideas"<br>
+            1 ────────○─────── 7<br><br>
+            3. ELABORATION<br>
+            "I created details to add to ideas"<br>
+            1 ────────○─────── 7<br><br>
+            4. FLUENCY<br>
+            "I created many ideas to solve the problem"<br>
+            1 ────────○─────── 7<br><br>
+            [Submit Assessment]
+        </div>
+        
+        <p><strong>System Also Computes Automated Metrics:</strong></p>
+        <ul>
+            <li>Unique ideas count (from dialogue analysis)</li>
+            <li>Alternative approaches count</li>
+            <li>Detail instances</li>
+            <li>Ideas per minute</li>
+        </ul>
+        
+        <p><span class="checkmark">✅</span> <strong>Task Response Saved</strong></p>
+    </div>
+</div>
+
+<div class="arrow">↓</div>
+
+<!-- STEP 6 -->
+<div class="step">
+    <div class="step-header">
+        <div class="step-number">6</div>
+        <div class="step-title">POST-EXPERIMENT SURVEY</div>
+        <div class="step-time">⏱️ 8-12 minutes</div>
+    </div>
+    <div class="step-content">
+        <h4>37-Question Survey:</h4>
+        
+        <p><strong>A. LIKERT SCALE QUESTIONS (31 questions, 1-7 scale):</strong></p>
+        <ul>
+            <li>LLM personality perception</li>
+            <li>Collaboration experience</li>
+            <li>Task difficulty</li>
+            <li>Satisfaction with outcome</li>
+            <li>Trust in LLM suggestions</li>
+        </ul>
+        
+        <p><strong>B. OPEN-ENDED QUESTIONS (6 questions):</strong></p>
+        <ul>
+            <li>"What did you like most about the LLM personality?"</li>
+            <li>"What challenges did you face?"</li>
+            <li>"How did the LLM influence your decisions?"</li>
+            <li>"Would you use this LLM again? Why/why not?"</li>
+            <li>"Any suggestions for improvement?"</li>
+            <li>"Additional comments"</li>
+        </ul>
+        
+        <p><span class="checkmark">✅</span> <strong>Survey Responses Saved</strong></p>
+    </div>
+</div>
+
+<div class="arrow">↓</div>
+
+<!-- STEP 7 -->
+<div class="step">
+    <div class="step-header">
+        <div class="step-number">7</div>
+        <div class="step-title">REPORT GENERATION & COMPLETION</div>
+        <div class="step-time">⏱️ 1-2 minutes</div>
+    </div>
+    <div class="step-content">
+        <h4>System Automatically Generates Comprehensive Report:</h4>
+        
+        <div class="interface-box">
+            <strong>📊 PARTICIPANT SUMMARY REPORT</strong><br><br>
+            • Participant ID & Session Info<br>
+            • Big5 Personality Profile (scores + Gerlach type)<br>
+            • Task & LLM Personality Selected<br>
+            • Complete Dialogue Transcript<br>
+            • Task-Specific Results:<br>
+            &nbsp;&nbsp;- Noble Industries: Rankings + Rationales<br>
+            &nbsp;&nbsp;- Popcorn Brain: Self vs Computed Creativity Metrics<br>
+            • Survey Responses & Analysis<br>
+            • Performance Analytics<br><br>
+            [Download Markdown] [Download HTML]
+        </div>
+        
+        <p><span class="checkmark">✅</span> <strong>SESSION COMPLETE</strong></p>
+        
+        <p><strong>Participant Can:</strong></p>
+        <ul>
+            <li>Download their report</li>
+            <li>Review their results</li>
+            <li>Close browser</li>
+        </ul>
+    </div>
+</div>
+
+<!-- SUMMARY SECTION -->
+<div class="summary-box">
+    <h3>⏰ Total Time Estimate</h3>
+    <table class="timeline-table">
+        <thead>
+            <tr>
+                <th>Step</th>
+                <th>Activity</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Registration</td>
+                <td>2-3 min</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Big5 Assessment</td>
+                <td>10-15 min</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Task/LLM Selection</td>
+                <td>2-3 min</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Dialogue</td>
+                <td>15-25 min</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Task Response</td>
+                <td>5-10 min</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>Survey</td>
+                <td>8-12 min</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>Report</td>
+                <td>1-2 min</td>
+            </tr>
+            <tr style="background: #e8eaf6; font-weight: bold;">
+                <td colspan="2">TOTAL</td>
+                <td>45-75 min</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- DATA CAPTURED -->
+<div class="summary-box">
+    <h3>💾 Data Captured Throughout Workflow</h3>
+    <div class="data-grid">
+        <div class="data-item">
+            <h4>📁 Session Data</h4>
+            <p>Participant ID, timestamps, task/LLM selection</p>
+        </div>
+        <div class="data-item">
+            <h4>📁 Big5 Assessment</h4>
+            <p>50 item responses, trait scores, Gerlach type</p>
+        </div>
+        <div class="data-item">
+            <h4>📁 Dialogue Record</h4>
+            <p>Complete transcript, message count, duration</p>
+        </div>
+        <div class="data-item">
+            <h4>📁 Task Response</h4>
+            <p>Noble: Rankings + rationales<br>Popcorn: Self-ratings + computed metrics</p>
+        </div>
+        <div class="data-item">
+            <h4>📁 Survey Data</h4>
+            <p>31 Likert responses + 6 open-ended responses</p>
+        </div>
+        <div class="data-item">
+            <h4>📁 Summary Report</h4>
+            <p>Comprehensive analysis (Markdown + HTML formats)</p>
+        </div>
+    </div>
+</div>
+
+<!-- TECHNICAL NOTES -->
+<div class="tech-notes">
+    <h4>🔧 Technical Notes</h4>
+    <ul>
+        <li><strong>Platform:</strong> Streamlit Cloud (24/7 availability)</li>
+        <li><strong>Browser:</strong> Any modern browser (Chrome, Firefox, Safari, Edge)</li>
+        <li><strong>Internet:</strong> Required throughout session</li>
+        <li><strong>Auto-save:</strong> Data saved in real-time</li>
+        <li><strong>Recovery:</strong> Can resume if disconnected (same session ID)</li>
+        <li><strong>Privacy:</strong> Anonymous participant IDs, no PII collected</li>
+        <li><strong>Support:</strong> Contact researcher for technical issues</li>
+    </ul>
+</div>
+
+</body>
+</html>

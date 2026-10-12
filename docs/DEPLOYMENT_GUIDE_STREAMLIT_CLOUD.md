@@ -528,7 +528,7 @@ if IS_PRODUCTION:
 
 ### Sharing the App
 
-**Public URL**: `https://gerlach-research.streamlit.app`
+**Public URLs**: English `https://gerlach-research.streamlit.app/` · Korean `https://blueberryfresh-research-ko.streamlit.app/`
 
 **Recruitment Email Template**:
 

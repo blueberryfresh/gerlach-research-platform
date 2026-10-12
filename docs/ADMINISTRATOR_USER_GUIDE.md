@@ -66,7 +66,8 @@ The Gerlach Research Platform is a web-based research tool that:
 
 Your Gerlach Research Platform is hosted at:
 ```
-https://[your-app-name].streamlit.app
+English: https://gerlach-research.streamlit.app/
+Korean:  https://blueberryfresh-research-ko.streamlit.app/
 ```
 
 **To find your exact URL:**
