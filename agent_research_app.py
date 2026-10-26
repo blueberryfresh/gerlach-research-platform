@@ -171,6 +171,10 @@ def render_korean_welcome():
 - **연구담당자 연락처**
   연세대학교 경영대 연구실 (010-3460-0613)
   연구자 임일 (il.im@yonsei.ac.kr)
+  ※ 연세대학교 소속 참여자께서 본 연구와 관련하여 문제나 문의사항이 있으실 경우 위 연락처로 문의해 주시기 바랍니다.
+
+- **연구담당자 연락처 (조지메이슨대학교 학생)**
+  조지메이슨대학교(George Mason University) 학생으로서 본 연구에 참여하시는 경우, 문제나 문의사항이 있으시면 Stephen Choi 박사 (kchoi29@gmu.edu)에게 연락해 주시기 바랍니다.
 
 - **연구대상자 권리 정보에 관한 문의처**
   연세대학교 생명윤리위원회 (02-2123-5143)
@@ -264,6 +268,10 @@ Yonsei University School of Business Research Lab
 010 3460 0613
 Researcher: Il Im
 il.im@yonsei.ac.kr
+If you are a Yonsei University participant and have any problem or issue with this study, please contact Dr. Il Im.
+
+**Research Contact (George Mason University Students)**
+If you are a George Mason University student participating in this study and have any problem or issue, please report it to Dr. Stephen Choi (kchoi29@gmu.edu).
 
 **Contact for Questions Regarding Research Participants' Rights**
 Yonsei University Institutional Review Board
