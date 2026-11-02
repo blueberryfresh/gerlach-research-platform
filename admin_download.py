@@ -1128,6 +1128,98 @@ def _render_study_progress():
             st.markdown(f"**{label}:** — (no data yet)")
 
 
+def _load_compensation_records():
+    """Phone-number submissions for gift-card compensation.
+
+    Merges the GitHub data repo (source of truth, survives redeploys) with any
+    local files. Kept out of the main ZIP/CSV on purpose: the consent form promises
+    contact info is managed separately from the research data.
+    """
+    records = {}
+
+    comp_dir = DATA_DIR / "compensation"
+    if comp_dir.exists():
+        for f in comp_dir.glob("*.json"):
+            try:
+                with open(f, 'r', encoding='utf-8') as fh:
+                    records[f.stem] = json.load(fh)
+            except Exception:
+                pass
+
+    github_ok = False
+    try:
+        from github_storage import get_storage
+        gh = get_storage()
+        if gh.enabled:
+            github_ok = True
+            for item in gh.list_dir("compensation"):
+                if item.get("type") != "file" or not item["name"].endswith(".json"):
+                    continue
+                stem = item["name"][:-len(".json")]
+                if stem in records:
+                    continue
+                raw = gh.read_raw(f"compensation/{item['name']}")
+                if raw:
+                    try:
+                        records[stem] = json.loads(raw)
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+
+    return list(records.values()), github_ok
+
+
+def _render_compensation():
+    """Compensation tab — phone numbers for gift-card payout (admin only)."""
+    import pandas as pd
+
+    st.header("Compensation – Phone Numbers")
+    st.caption(
+        "Collected on the completion screen for Starbucks gift-card payment only. "
+        "Per the consent form, delete after payment and do not merge with research data."
+    )
+
+    if st.button("🔄 Reload from GitHub", key="comp_reload"):
+        st.session_state.pop("comp_cache", None)
+    if "comp_cache" not in st.session_state:
+        with st.spinner("Loading phone numbers…"):
+            st.session_state["comp_cache"] = _load_compensation_records()
+    records, github_ok = st.session_state["comp_cache"]
+
+    if not github_ok:
+        st.warning("GitHub storage is not enabled — showing only numbers saved on this server's local disk.")
+
+    participants = get_all_participants()
+    submitted_ids = {r.get("session_id") for r in records}
+    completed = [p for p in participants if p['current_stage'] == 'completed']
+    missing = [p for p in completed if p['session_id'] not in submitted_ids]
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Numbers submitted", len(records))
+    c2.metric("Sessions completed", len(completed))
+    c3.metric("Completed, no number", len(missing))
+
+    if records:
+        df = pd.DataFrame(records).reindex(columns=["user_id", "phone_number", "submitted_at", "session_id"])
+        df = df.sort_values("submitted_at", na_position="last").reset_index(drop=True)
+        st.dataframe(df, use_container_width=True, hide_index=True)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        st.download_button(
+            "⬇️ Download Phone Numbers (CSV)",
+            # utf-8-sig so Excel opens it correctly
+            data=df.to_csv(index=False).encode("utf-8-sig"),
+            file_name=f"compensation_phone_numbers_{timestamp}.csv",
+            mime="text/csv",
+        )
+    else:
+        st.info("No phone numbers submitted yet.")
+
+    if missing:
+        st.markdown("**Completed sessions with no phone number** (may have closed the page before submitting):")
+        st.write(", ".join(sorted(p['user_id'] for p in missing)))
+
+
 def admin_page():
     """Main admin download page"""
 
@@ -1149,10 +1241,13 @@ def admin_page():
 
     st.markdown("---")
 
-    tab0, tab_progress, tab_friction, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["👥 Activity Log", "📈 Study Progress", "⚡ Friction Analysis", "📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🔀 Stage Navigator", "🔌 GitHub Test", "🤖 API Monitor"])
+    tab0, tab_progress, tab_friction, tab1, tab2, tab3, tab_comp, tab4, tab5, tab6 = st.tabs(["👥 Activity Log", "📈 Study Progress", "⚡ Friction Analysis", "📥 Download All Data", "👤 Download by Participant", "📊 Export to CSV", "🎁 Compensation", "🔀 Stage Navigator", "🔌 GitHub Test", "🤖 API Monitor"])
 
     with tab0:
         _render_activity_log()
+
+    with tab_comp:
+        _render_compensation()
 
     with tab_progress:
         _render_study_progress()
